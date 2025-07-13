@@ -1,0 +1,186 @@
+<div class="register-container">
+  <div class="container-fluid vh-100">
+    <div class="row h-100">
+      
+      <div class="col-md-6 d-none d-md-flex register-left-panel">
+        <div class="d-flex flex-column justify-content-center align-items-center text-white w-100">
+          <div class="text-center mb-4">
+            <i class="fas fa-car fa-5x mb-3"></i>
+            <h1 class="fw-bold">Minha Garagem</h1>
+            <p class="lead">Junte-se a nós e organize seus veículos</p>
+          </div>
+          <div class="features-list">
+            <div class="feature-item d-flex align-items-center mb-3">
+              <i class="fas fa-user-plus me-3"></i>
+              <span>Cadastro rápido e fácil</span>
+            </div>
+            <div class="feature-item d-flex align-items-center mb-3">
+              <i class="fas fa-shield-alt me-3"></i>
+              <span>Dados seguros e protegidos</span>
+            </div>
+            <div class="feature-item d-flex align-items-center mb-3">
+              <i class="fas fa-mobile-alt me-3"></i>
+              <span>Acesso em qualquer dispositivo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 d-flex align-items-center justify-content-center">
+        <div class="register-form-container">
+          <div class="text-center mb-4">
+            <div class="d-md-none mb-3">
+              <i class="fas fa-car fa-3x text-primary"></i>
+            </div>
+            <h2 class="fw-bold text-dark">Criar Conta</h2>
+            <p class="text-muted">Preencha os dados abaixo para começar</p>
+          </div>
+          
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
+            
+            <div class="mb-3">
+              <label for="displayName" class="form-label">Nome Completo</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="displayName" 
+                  formControlName="displayName"
+                  placeholder="Digite seu nome completo"
+                  [class.is-invalid]="registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched"
+                  [class.is-valid]="registerForm.get('displayName')?.valid && registerForm.get('displayName')?.touched">
+              </div>
+              <div class="invalid-feedback" *ngIf="registerForm.get('displayName')?.invalid && registerForm.get('displayName')?.touched">
+                <div *ngIf="registerForm.get('displayName')?.errors?.['required']">Nome é obrigatório</div>
+                <div *ngIf="registerForm.get('displayName')?.errors?.['minlength']">Nome deve ter pelo menos 2 caracteres</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-envelope"></i>
+                </span>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  id="email" 
+                  formControlName="email"
+                  placeholder="Digite seu email"
+                  [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+                  [class.is-valid]="registerForm.get('email')?.valid && registerForm.get('email')?.touched">
+              </div>
+              <div class="invalid-feedback" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                <div *ngIf="registerForm.get('email')?.errors?.['required']">Email é obrigatório</div>
+                <div *ngIf="registerForm.get('email')?.errors?.['email']">Email deve ter um formato válido</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="password" class="form-label">Senha</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input 
+                  [type]="showPassword ? 'text' : 'password'" 
+                  class="form-control" 
+                  id="password" 
+                  formControlName="password"
+                  placeholder="Digite sua senha"
+                  [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                  [class.is-valid]="registerForm.get('password')?.valid && registerForm.get('password')?.touched">
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  (click)="togglePasswordVisibility()">
+                  <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                <div *ngIf="registerForm.get('password')?.errors?.['required']">Senha é obrigatória</div>
+                <div *ngIf="registerForm.get('password')?.errors?.['minlength']">Senha deve ter pelo menos 6 caracteres</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirmar Senha</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input 
+                  [type]="showConfirmPassword ? 'text' : 'password'" 
+                  class="form-control" 
+                  id="confirmPassword" 
+                  formControlName="confirmPassword"
+                  placeholder="Confirme sua senha"
+                  [class.is-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+                  [class.is-valid]="registerForm.get('confirmPassword')?.valid && registerForm.get('confirmPassword')?.touched">
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  (click)="toggleConfirmPasswordVisibility()">
+                  <i [class]="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+                <div *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Confirmação de senha é obrigatória</div>
+                <div *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch']">Senhas não coincidem</div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="acceptTerms" formControlName="acceptTerms">
+                <label class="form-check-label" for="acceptTerms">
+                  Eu aceito os <a href="#" class="text-decoration-none">Termos de Uso</a> e a 
+                  <a href="#" class="text-decoration-none">Política de Privacidade</a>
+                </label>
+              </div>
+              <div class="invalid-feedback d-block" *ngIf="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched">
+                Você deve aceitar os termos para continuar
+              </div>
+            </div>
+            
+            <button 
+              type="submit" 
+              class="btn btn-primary w-100 mb-3 py-2"
+              [disabled]="registerForm.invalid || isLoading">
+              <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+              <span>{{ isLoading ? 'Criando conta...' : 'Criar Conta' }}</span>
+            </button>
+            
+            <div class="divider-container text-center mb-3">
+              <span class="divider-text">ou</span>
+            </div>
+            
+            <button 
+              type="button" 
+              class="btn btn-outline-primary w-100"
+              (click)="goToLogin()">
+              <i class="fas fa-arrow-left me-2"></i>
+              Já tenho uma conta
+            </button>
+    
+          </form>
+          
+          <div class="alert alert-danger mt-3" role="alert" *ngIf="errorMessage">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ errorMessage }}
+          </div>
+          
+          <div class="alert alert-success mt-3" role="alert" *ngIf="successMessage">
+            <i class="fas fa-check-circle me-2"></i>
+            {{ successMessage }}
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
