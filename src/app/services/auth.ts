@@ -35,18 +35,18 @@ export class AuthService {
   }
 
   // Login com email e senha
-  async login(email: string, password: string): Promise<{ success: boolean; message: string }> {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      console.log('Login realizado com sucesso:', user.email);
-      return { success: true, message: 'Login realizado com sucesso!' };
-    } catch (error: any) {
-      console.error('Erro no login:', error);
-      return { success: false, message: this.getErrorMessage(error.code) };
-    }
+async login(email: string, password: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    console.log('Firebase login successful:', user.email);
+    return { success: true, message: 'Login realizado com sucesso!' };
+  } catch (error: any) {
+    console.error('Firebase login error:', error.code, error.message);
+    return { success: false, message: this.getErrorMessage(error.code) };
   }
+}
 
   // Registro de novo usuário
   async register(email: string, password: string, displayName: string): Promise<{ success: boolean; message: string }> {

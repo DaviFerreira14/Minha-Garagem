@@ -1,9 +1,10 @@
-// login.component.ts
+// login.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-login',
@@ -17,15 +18,23 @@ export class Login implements OnInit {
   showPassword: boolean = false;
   isLoading: boolean = false;
   errorMessage: string = '';
-  authService: any;
 
   constructor(
     private formBuilder: FormBuilder,
-    private router: Router
-  ) {}
+    private router: Router,
+    private authService: AuthService 
+  ) {
+    // Debug para verificar se o serviço foi injetado
+    console.log('AuthService injected:', this.authService);
+  }
 
   ngOnInit(): void {
     this.initializeForm();
+    
+    // Se já estiver logado, redirecionar
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/dashboard']);
+    }
   }
 
   private initializeForm(): void {
@@ -40,34 +49,40 @@ export class Login implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
+    console.log('Login attempt started');
+    
     if (this.loginForm.valid) {
       this.isLoading = true;
       this.errorMessage = '';
 
       const { email, password, rememberMe } = this.loginForm.value;
+      
+      console.log('Attempting login for:', email);
 
-      // Simular chamada de API
-      setTimeout(() => {
-        // Aqui você implementaria a lógica de autenticação real
-        // Por enquanto, vamos simular um login de sucesso
-        if (email === 'admin@minhagaragem.com' && password === '123456') {
-          // Login bem-sucedido
+      try {
+        console.log('Calling authService.login...');
+        const result = await this.authService.login(email, password);
+        console.log('Login result:', result);
+        
+        if (result.success) {
+          console.log('Login successful, redirecting...');
           if (rememberMe) {
             localStorage.setItem('rememberUser', 'true');
           }
-          
-          // Redirecionar para o dashboard
           this.router.navigate(['/dashboard']);
         } else {
-          // Login falhou
-          this.errorMessage = 'Email ou senha incorretos. Tente novamente.';
+          console.log('Login failed:', result.message);
+          this.errorMessage = result.message;
         }
-        
+      } catch (error) {
+        console.error('Login error:', error);
+        this.errorMessage = 'Erro inesperado. Tente novamente.';
+      } finally {
         this.isLoading = false;
-      }, 1500);
+      }
     } else {
-      // Marcar todos os campos como touched para exibir erros
+      console.log('Form is invalid');
       this.markFormGroupTouched(this.loginForm);
     }
   }
@@ -87,33 +102,11 @@ export class Login implements OnInit {
     this.router.navigate(['/register']);
   }
 
-  // Getter para facilitar o acesso aos controles do formulário no template
+  goToForgotPassword(): void {
+    this.router.navigate(['/forgot-password']);
+  }
+
   get f() {
     return this.loginForm.controls;
   }
-
-  async forgotPassword(): Promise<void> {
-  const email = this.loginForm.get('email')?.value;
-  
-  if (!email) {
-    this.errorMessage = 'Digite seu email para recuperar a senha.';
-    return;
-  }
-
-  this.isLoading = true;
-  
-  try {
-    const result = await this.authService.resetPassword(email);
-    
-    if (result.success) {
-      alert('Email de recuperação enviado! Verifique sua caixa de entrada.');
-    } else {
-      this.errorMessage = result.message;
-    }
-  } catch (error) {
-    this.errorMessage = 'Erro ao enviar email de recuperação.';
-  } finally {
-    this.isLoading = false;
-  }
-}
 }

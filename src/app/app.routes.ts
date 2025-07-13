@@ -3,6 +3,7 @@ import { Login } from './componentes/login/login';
 import { Register } from './componentes/register/register';
 import { Dashboard } from './componentes/dashboard/dashboard';
 import { authGuard } from './guards/auth-guard';
+import { ForgotPassword } from './componentes/forgot-password/forgot-password';
 
 export const routes: Routes = [
     {
@@ -17,6 +18,10 @@ export const routes: Routes = [
     {
         path: 'register',
         component: Register
+    },
+     {
+        path: 'forgot-password',
+        component: ForgotPassword
     },
     {
         path: 'dashboard',
