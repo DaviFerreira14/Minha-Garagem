@@ -1,4 +1,3 @@
-// src/app/services/database.service.ts
 import { Injectable } from '@angular/core';
 import { 
   Firestore, 
@@ -22,12 +21,10 @@ export class DatabaseService {
 
   constructor(private firestore: Firestore) { }
 
-  // Método para testar a conexão
   async testarConexao(): Promise<boolean> {
     try {
       console.log('Testando conexão com Firebase...');
       
-      // Adicionar um documento de teste
       const docRef = await addDoc(collection(this.firestore, 'teste'), {
         mensagem: 'Conexão funcionando!',
         timestamp: Timestamp.now(),
@@ -36,13 +33,11 @@ export class DatabaseService {
       
       console.log('✅ Documento criado com ID:', docRef.id);
       
-      // Tentar ler o documento criado
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         console.log('✅ Documento lido:', docSnap.data());
       }
       
-      // Deletar o documento de teste
       await deleteDoc(docRef);
       console.log('✅ Documento de teste removido');
       
@@ -55,7 +50,6 @@ export class DatabaseService {
     }
   }
 
-  // Método para listar todas as coleções (útil para debug)
   async listarColecoes() {
     try {
       const colecoes = ['usuarios', 'veiculos', 'manutencoes', 'gastos'];
@@ -70,7 +64,6 @@ export class DatabaseService {
     }
   }
 
-  // Métodos para usuários
   async criarUsuario(userData: any) {
     try {
       const docRef = await addDoc(collection(this.firestore, 'usuarios'), {
@@ -105,7 +98,6 @@ export class DatabaseService {
     }
   }
 
-  // Métodos para veículos
   async criarVeiculo(veiculoData: any) {
     try {
       const docRef = await addDoc(collection(this.firestore, 'veiculos'), {
@@ -142,7 +134,6 @@ export class DatabaseService {
     }
   }
 
-  // Métodos para manutenções
   async criarManutencao(manutencaoData: any) {
     try {
       const docRef = await addDoc(collection(this.firestore, 'manutencoes'), {
@@ -179,7 +170,6 @@ export class DatabaseService {
     }
   }
 
-  // Métodos para gastos
   async criarGasto(gastoData: any) {
     try {
       const docRef = await addDoc(collection(this.firestore, 'gastos'), {
@@ -216,7 +206,6 @@ export class DatabaseService {
     }
   }
 
-  // Método genérico para atualizar documento
   async atualizarDocumento(colecao: string, id: string, dados: any) {
     try {
       const docRef = doc(this.firestore, colecao, id);
@@ -228,7 +217,6 @@ export class DatabaseService {
     }
   }
 
-  // Método genérico para deletar documento
   async deletarDocumento(colecao: string, id: string) {
     try {
       const docRef = doc(this.firestore, colecao, id);

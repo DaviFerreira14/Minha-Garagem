@@ -2,8 +2,6 @@
 <div class="login-container">
   <div class="container-fluid vh-100">
     <div class="row h-100">
-      
-      <!-- Lado esquerdo - Imagem/Branding -->
       <div class="col-md-6 d-none d-md-flex login-left-panel">
         <div class="d-flex flex-column justify-content-center align-items-center text-white w-100">
           <div class="text-center mb-4">
@@ -28,7 +26,6 @@
         </div>
       </div>
       
-      <!-- Lado direito - Formulário -->
       <div class="col-md-6 d-flex align-items-center justify-content-center">
         <div class="login-form-container">
           <div class="text-center mb-4">
@@ -41,7 +38,6 @@
           
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="needs-validation" novalidate>
             
-            <!-- Campo Email -->
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <div class="input-group">
@@ -62,8 +58,7 @@
                 <div *ngIf="loginForm.get('email')?.errors?.['email']">Email deve ter um formato válido</div>
               </div>
             </div>
-            
-            <!-- Campo Senha -->
+
             <div class="mb-3">
               <label for="password" class="form-label">Senha</label>
               <div class="input-group">
@@ -89,7 +84,6 @@
               </div>
             </div>
             
-            <!-- Lembrar-me e Esqueceu a senha -->
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="rememberMe" formControlName="rememberMe">
@@ -97,10 +91,9 @@
                   Lembrar-me
                 </label>
               </div>
-              <a href="#" class="text-decoration-none" (click)="goToForgotPassword()">Esqueceu a senha?</a>
+              <a class="text-decoration-none" style="cursor: pointer;" (click)="goToForgotPassword()">Esqueceu a senha?</a>
             </div>
             
-            <!-- Botão Login -->
             <button 
               type="submit" 
               class="btn btn-primary w-100 mb-3 py-2"
@@ -109,12 +102,10 @@
               <span>{{ isLoading ? 'Entrando...' : 'Entrar' }}</span>
             </button>
             
-            <!-- Divisor -->
             <div class="divider-container text-center mb-3">
               <span class="divider-text">ou</span>
             </div>
             
-            <!-- Botão Cadastrar -->
             <button 
               type="button" 
               class="btn btn-outline-primary w-100"
@@ -124,7 +115,6 @@
             
           </form>
           
-          <!-- Alert de erro -->
           <div class="alert alert-danger mt-3" role="alert" *ngIf="errorMessage">
             <i class="fas fa-exclamation-triangle me-2"></i>
             {{ errorMessage }}

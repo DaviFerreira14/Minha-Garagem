@@ -1,4 +1,3 @@
-// forgot-password.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -32,15 +31,12 @@ export class ForgotPassword implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializeForm();
-    
-    // Se já estiver logado, redirecionar
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
     }
   }
 
   ngOnDestroy(): void {
-    // Limpar interval se existir
     if (this.cooldownInterval) {
       clearInterval(this.cooldownInterval);
     }
@@ -63,12 +59,10 @@ export class ForgotPassword implements OnInit, OnDestroy {
         const result = await this.authService.resetPassword(email);
         
         if (result.success) {
-          // Email enviado com sucesso
           this.userEmail = email;
           this.emailSent = true;
           this.startResendCooldown();
         } else {
-          // Erro ao enviar email
           this.errorMessage = result.message;
         }
       } catch (error) {
@@ -78,7 +72,6 @@ export class ForgotPassword implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     } else {
-      // Marcar campos como touched para exibir erros
       this.markFormGroupTouched(this.forgotPasswordForm);
       this.errorMessage = 'Por favor, digite um email válido.';
     }
@@ -94,14 +87,11 @@ export class ForgotPassword implements OnInit, OnDestroy {
       const result = await this.authService.resetPassword(this.userEmail);
       
       if (result.success) {
-        // Email reenviado com sucesso
         this.startResendCooldown();
         
-        // Mostrar mensagem temporária
         const originalText = 'Email reenviado com sucesso!';
-        this.errorMessage = ''; // Limpar erro
+        this.errorMessage = ''; 
         
-        // Criar uma notificação temporária
         this.showTemporaryMessage(originalText, 'success');
       } else {
         this.errorMessage = result.message;
@@ -115,8 +105,6 @@ export class ForgotPassword implements OnInit, OnDestroy {
   }
 
   private showTemporaryMessage(message: string, type: 'success' | 'error'): void {
-    // Aqui você pode implementar uma notificação toast
-    // Por enquanto, vamos usar um alert simples
     if (type === 'success') {
       setTimeout(() => {
         alert(message);
@@ -174,12 +162,10 @@ export class ForgotPassword implements OnInit, OnDestroy {
     });
   }
 
-  // Getter para facilitar o acesso aos controles do formulário no template
   get f() {
     return this.forgotPasswordForm.controls;
   }
 
-  // Método para voltar ao formulário (caso queira adicionar um botão)
   editEmail(): void {
     this.backToForm();
   }
