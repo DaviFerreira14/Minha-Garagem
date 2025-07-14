@@ -1,17 +1,21 @@
-// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  User,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  updateProfile
-} from 'firebase/auth';
-import { auth } from '../firebase.config';
-import { BehaviorSubject, Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+export interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  emailVerified?: boolean;
+}
+
+// Interface para resultado de operações de auth
+export interface AuthResult {
+  success: boolean;
+  message: string;
+  user?: User;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -21,75 +25,201 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private router: Router) {
-    // Monitora mudanças no estado de autenticação
-    onAuthStateChanged(auth, (user) => {
-      this.currentUserSubject.next(user);
-      if (user) {
-        // Usuário logado
-        console.log('Usuário logado:', user.email);
-      } else {
-        // Usuário deslogado
-        console.log('Usuário deslogado');
+    // Verificar se há usuário logado no localStorage
+    this.checkStoredUser();
+  }
+
+  // Verificar usuário armazenado
+  private checkStoredUser(): void {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        this.currentUserSubject.next(user);
+      } catch (error) {
+        console.error('Erro ao carregar usuário do storage:', error);
+        localStorage.removeItem('currentUser');
       }
-    });
-  }
-
-  // Login com email e senha
-async login(email: string, password: string): Promise<{ success: boolean; message: string }> {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    
-    console.log('Firebase login successful:', user.email);
-    return { success: true, message: 'Login realizado com sucesso!' };
-  } catch (error: any) {
-    console.error('Firebase login error:', error.code, error.message);
-    return { success: false, message: this.getErrorMessage(error.code) };
-  }
-}
-
-  // Registro de novo usuário
-  async register(email: string, password: string, displayName: string): Promise<{ success: boolean; message: string }> {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Atualizar nome do usuário
-      await updateProfile(user, { displayName: displayName });
-      
-      console.log('Registro realizado com sucesso:', user.email);
-      return { success: true, message: 'Conta criada com sucesso!' };
-    } catch (error: any) {
-      console.error('Erro no registro:', error);
-      return { success: false, message: this.getErrorMessage(error.code) };
     }
   }
 
-  // Logout
-  async logout(): Promise<void> {
+  // Fazer login - versão compatível com seus componentes
+  async login(email: string, password: string): Promise<AuthResult> {
     try {
-      await signOut(auth);
-      this.router.navigate(['/login']);
-      console.log('Logout realizado com sucesso');
+      // Validações básicas
+      if (!email || !password) {
+        return {
+          success: false,
+          message: 'Email e senha são obrigatórios'
+        };
+      }
+
+      if (!this.isValidEmail(email)) {
+        return {
+          success: false,
+          message: 'Email inválido'
+        };
+      }
+
+      // Simular validação de credenciais
+      // Aqui você implementaria a lógica real de autenticação
+      if (password.length < 6) {
+        return {
+          success: false,
+          message: 'Senha deve ter pelo menos 6 caracteres'
+        };
+      }
+
+      // Criar usuário (simulação - substitua pela sua lógica)
+      const user: User = {
+        id: 'user_' + Date.now(),
+        email: email,
+        displayName: email.split('@')[0],
+        emailVerified: true
+      };
+
+      this.setCurrentUser(user);
+
+      return {
+        success: true,
+        message: 'Login realizado com sucesso!',
+        user: user
+      };
+
     } catch (error) {
-      console.error('Erro no logout:', error);
+      console.error('Erro no login:', error);
+      return {
+        success: false,
+        message: 'Erro interno. Tente novamente.'
+      };
     }
   }
 
-  // Recuperar senha
-  async resetPassword(email: string): Promise<{ success: boolean; message: string }> {
+  // Fazer registro - versão compatível com seus componentes
+  async register(email: string, password: string, displayName?: string): Promise<AuthResult> {
     try {
-      await sendPasswordResetEmail(auth, email);
-      return { success: true, message: 'Email de recuperação enviado!' };
-    } catch (error: any) {
-      console.error('Erro ao enviar email de recuperação:', error);
-      return { success: false, message: this.getErrorMessage(error.code) };
+      // Validações básicas
+      if (!email || !password) {
+        return {
+          success: false,
+          message: 'Email e senha são obrigatórios'
+        };
+      }
+
+      if (!this.isValidEmail(email)) {
+        return {
+          success: false,
+          message: 'Email inválido'
+        };
+      }
+
+      if (password.length < 6) {
+        return {
+          success: false,
+          message: 'Senha deve ter pelo menos 6 caracteres'
+        };
+      }
+
+      // Verificar se email já existe (simulação)
+      const existingUser = localStorage.getItem(`user_${email}`);
+      if (existingUser) {
+        return {
+          success: false,
+          message: 'Este email já está cadastrado'
+        };
+      }
+
+      // Criar novo usuário
+      const user: User = {
+        id: 'user_' + Date.now(),
+        email: email,
+        displayName: displayName || email.split('@')[0],
+        emailVerified: false
+      };
+
+      // Salvar usuário (simulação)
+      localStorage.setItem(`user_${email}`, JSON.stringify(user));
+      this.setCurrentUser(user);
+
+      return {
+        success: true,
+        message: 'Cadastro realizado com sucesso!',
+        user: user
+      };
+
+    } catch (error) {
+      console.error('Erro no registro:', error);
+      return {
+        success: false,
+        message: 'Erro interno. Tente novamente.'
+      };
     }
   }
 
-  // Verificar se usuário está logado
-  isLoggedIn(): boolean {
-    return !!this.currentUserSubject.value;
+  // Reset/recuperar senha - método que estava faltando
+  async resetPassword(email: string): Promise<AuthResult> {
+    try {
+      if (!email) {
+        return {
+          success: false,
+          message: 'Email é obrigatório'
+        };
+      }
+
+      if (!this.isValidEmail(email)) {
+        return {
+          success: false,
+          message: 'Email inválido'
+        };
+      }
+
+      // Verificar se email existe (simulação)
+      const existingUser = localStorage.getItem(`user_${email}`);
+      if (!existingUser) {
+        return {
+          success: false,
+          message: 'Email não encontrado'
+        };
+      }
+
+      // Simular envio de email de recuperação
+      console.log('Enviando email de recuperação para:', email);
+      
+      // Aqui você implementaria o envio real do email
+      // Por exemplo: enviar para API que envia email
+
+      return {
+        success: true,
+        message: 'Email de recuperação enviado com sucesso!'
+      };
+
+    } catch (error) {
+      console.error('Erro ao enviar email de recuperação:', error);
+      return {
+        success: false,
+        message: 'Erro ao enviar email. Tente novamente.'
+      };
+    }
+  }
+
+  // Método para recuperar senha (alias para resetPassword)
+  async forgotPassword(email: string): Promise<void> {
+    const result = await this.resetPassword(email);
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+  }
+
+  // Validar formato de email
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  // Definir usuário atual
+  private setCurrentUser(user: User): void {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUserSubject.next(user);
   }
 
   // Obter usuário atual
@@ -97,25 +227,107 @@ async login(email: string, password: string): Promise<{ success: boolean; messag
     return this.currentUserSubject.value;
   }
 
-  // Traduzir códigos de erro do Firebase
-  private getErrorMessage(errorCode: string): string {
-    switch (errorCode) {
-      case 'auth/user-not-found':
-        return 'Usuário não encontrado. Verifique o email.';
-      case 'auth/wrong-password':
-        return 'Senha incorreta. Tente novamente.';
-      case 'auth/email-already-in-use':
-        return 'Este email já está sendo usado por outra conta.';
-      case 'auth/weak-password':
-        return 'A senha deve ter pelo menos 6 caracteres.';
-      case 'auth/invalid-email':
-        return 'Email inválido. Verifique o formato.';
-      case 'auth/too-many-requests':
-        return 'Muitas tentativas. Tente novamente mais tarde.';
-      case 'auth/network-request-failed':
-        return 'Erro de conexão. Verifique sua internet.';
-      default:
-        return 'Ocorreu um erro inesperado. Tente novamente.';
+  // Verificar se está logado
+  isLoggedIn(): boolean {
+    return this.currentUserSubject.value !== null;
+  }
+
+  // Fazer logout
+  async logout(): Promise<void> {
+    try {
+      localStorage.removeItem('currentUser');
+      this.currentUserSubject.next(null);
+      this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      throw error;
     }
+  }
+
+  // Atualizar perfil
+  async updateProfile(updates: Partial<User>): Promise<User> {
+    try {
+      const currentUser = this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('Usuário não está logado');
+      }
+
+      const updatedUser = { ...currentUser, ...updates };
+      this.setCurrentUser(updatedUser);
+      return updatedUser;
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      throw error;
+    }
+  }
+
+  // Obter ID do usuário
+  getUserId(): string | null {
+    const user = this.getCurrentUser();
+    return user ? user.id : null;
+  }
+
+  // Obter email do usuário
+  getUserEmail(): string | null {
+    const user = this.getCurrentUser();
+    return user ? user.email : null;
+  }
+
+  // Obter nome de exibição
+  getUserDisplayName(): string {
+    const user = this.getCurrentUser();
+    if (user?.displayName) {
+      return user.displayName;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'Usuário';
+  }
+
+  // Obter primeiro nome
+  getUserFirstName(): string {
+    const user = this.getCurrentUser();
+    if (user?.displayName) {
+      return user.displayName.split(' ')[0];
+    }
+    if (user?.email) {
+      const emailName = user.email.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    return 'Usuário';
+  }
+
+  // Método para verificar força da senha
+  checkPasswordStrength(password: string): { score: number; message: string } {
+    let score = 0;
+    let message = '';
+
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    switch (score) {
+      case 0:
+      case 1:
+        message = 'Senha muito fraca';
+        break;
+      case 2:
+        message = 'Senha fraca';
+        break;
+      case 3:
+        message = 'Senha média';
+        break;
+      case 4:
+        message = 'Senha forte';
+        break;
+      case 5:
+        message = 'Senha muito forte';
+        break;
+    }
+
+    return { score, message };
   }
 }
