@@ -1,0 +1,337 @@
+<div class="edit-vehicle-container">
+  
+  <!-- Header -->
+  <div class="edit-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <button class="btn btn-outline-secondary" (click)="cancel()">
+            <i class="fas fa-arrow-left me-2"></i>
+            Voltar
+          </button>
+        </div>
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+              <li class="breadcrumb-item">
+                <a href="#" (click)="cancel()">Dashboard</a>
+              </li>
+              <li class="breadcrumb-item">
+                <a href="#" (click)="cancel()">{{ getVehicleFullName() }}</a>
+              </li>
+              <li class="breadcrumb-item active">Editar</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-auto" *ngIf="vehicle && !isLoading">
+          <button class="btn btn-outline-warning" (click)="resetForm()" [disabled]="!hasChanges()">
+            <i class="fas fa-undo me-1"></i>
+            Resetar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="loading-spinner"></div>
+      <p class="text-muted mt-3">Carregando veículo para edição...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="alert alert-danger">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <div class="mt-3">
+        <button class="btn btn-outline-danger" (click)="cancel()">
+          Voltar ao Dashboard
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div *ngIf="vehicle && !isLoading && !error">
+      
+      <!-- Form Header -->
+      <div class="form-header mb-4">
+        <div class="row align-items-center">
+          <div class="col">
+            <h1 class="form-title">Editar {{ getVehicleFullName() }}</h1>
+            <p class="text-muted">Atualize as informações do seu veículo</p>
+          </div>
+          <div class="col-auto">
+            <div class="changes-indicator" *ngIf="hasChanges()">
+              <i class="fas fa-circle text-warning me-1"></i>
+              <small class="text-warning">Alterações não salvas</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form [formGroup]="vehicleForm" (ngSubmit)="onSubmit()" class="edit-form">
+        
+        <!-- Seção de Foto -->
+        <div class="form-section photo-section">
+          <div class="section-header">
+            <h3>Foto do Veículo</h3>
+            <p class="section-description">Atualize a foto do seu veículo</p>
+          </div>
+          
+          <div class="photo-edit-area" 
+               [class.drag-over]="isDragOver"
+               (dragover)="onDragOver($event)"
+               (dragleave)="onDragLeave($event)"
+               (drop)="onDrop($event)"
+               (click)="triggerFileInput()">
+            
+            <div *ngIf="!photoPreview" class="upload-placeholder">
+              <span class="upload-icon">📷</span>
+              <p>Clique ou arraste uma foto aqui</p>
+            </div>
+            
+            <div *ngIf="photoPreview" class="photo-preview">
+              <img [src]="photoPreview" alt="Preview do veículo">
+              <div class="photo-actions">
+                <button type="button" class="btn btn-sm btn-primary" 
+                        (click)="changePhoto(); $event.stopPropagation()">
+                  <i class="fas fa-camera me-1"></i>
+                  Alterar
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" 
+                        (click)="removePhoto(); $event.stopPropagation()">
+                  <i class="fas fa-trash me-1"></i>
+                  Remover
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                        (click)="restoreOriginalPhoto(); $event.stopPropagation()"
+                        *ngIf="photoChanged">
+                  <i class="fas fa-undo me-1"></i>
+                  Restaurar
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <input #fileInput 
+                 type="file" 
+                 accept="image/*" 
+                 style="display: none"
+                 (change)="onFileSelected($event)">
+        </div>
+
+        <!-- Informações Básicas -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Informações Básicas</h3>
+            <p class="section-description">Dados principais do veículo</p>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="brand">Marca *</label>
+              <input id="brand" 
+                     type="text" 
+                     formControlName="brand"
+                     class="form-control"
+                     [class.is-invalid]="hasError('brand', 'required')">
+              <div *ngIf="hasError('brand', 'required')" class="invalid-feedback">
+                {{ getFieldError('brand') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="model">Modelo *</label>
+              <input id="model" 
+                     type="text" 
+                     formControlName="model"
+                     class="form-control"
+                     [class.is-invalid]="hasError('model', 'required')">
+              <div *ngIf="hasError('model', 'required')" class="invalid-feedback">
+                {{ getFieldError('model') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="year">Ano *</label>
+              <select id="year" 
+                      formControlName="year"
+                      class="form-control"
+                      [class.is-invalid]="hasError('year', 'required')">
+                <option value="">Selecione o ano</option>
+                <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+              </select>
+              <div *ngIf="hasError('year', 'required')" class="invalid-feedback">
+                {{ getFieldError('year') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="licensePlate">Placa *</label>
+              <input id="licensePlate" 
+                     type="text" 
+                     formControlName="licensePlate"
+                     class="form-control"
+                     maxlength="8"
+                     placeholder="ABC-1234"
+                     (input)="formatLicensePlate($event)"
+                     [class.is-invalid]="hasError('licensePlate', 'required')">
+              <div *ngIf="hasError('licensePlate', 'required')" class="invalid-feedback">
+                {{ getFieldError('licensePlate') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="color">Cor *</label>
+              <input id="color" 
+                     type="text" 
+                     formControlName="color"
+                     class="form-control"
+                     [class.is-invalid]="hasError('color', 'required')">
+              <div *ngIf="hasError('color', 'required')" class="invalid-feedback">
+                {{ getFieldError('color') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel">Combustível *</label>
+              <select id="fuel" 
+                      formControlName="fuel"
+                      class="form-control"
+                      [class.is-invalid]="hasError('fuel', 'required')">
+                <option value="">Selecione</option>
+                <option value="gasoline">Gasolina</option>
+                <option value="ethanol">Etanol</option>
+                <option value="flex">Flex</option>
+                <option value="diesel">Diesel</option>
+                <option value="electric">Elétrico</option>
+                <option value="hybrid">Híbrido</option>
+              </select>
+              <div *ngIf="hasError('fuel', 'required')" class="invalid-feedback">
+                {{ getFieldError('fuel') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Especificações Técnicas -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Especificações Técnicas</h3>
+            <p class="section-description">Detalhes técnicos do veículo</p>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="mileage">Quilometragem (km) *</label>
+              <input id="mileage" 
+                     type="number" 
+                     formControlName="mileage"
+                     class="form-control"
+                     min="0"
+                     [class.is-invalid]="hasError('mileage', 'required') || hasError('mileage', 'min')">
+              <div *ngIf="hasError('mileage', 'required') || hasError('mileage', 'min')" class="invalid-feedback">
+                {{ getFieldError('mileage') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="engineSize">Motor</label>
+              <input id="engineSize" 
+                     type="text" 
+                     formControlName="engineSize"
+                     class="form-control"
+                     placeholder="Ex: 1.6, 2.0">
+            </div>
+
+            <div class="form-group">
+              <label for="transmission">Transmissão *</label>
+              <select id="transmission" 
+                      formControlName="transmission"
+                      class="form-control"
+                      [class.is-invalid]="hasError('transmission', 'required')">
+                <option value="">Selecione</option>
+                <option value="manual">Manual</option>
+                <option value="automatic">Automática</option>
+                <option value="cvt">CVT</option>
+              </select>
+              <div *ngIf="hasError('transmission', 'required')" class="invalid-feedback">
+                {{ getFieldError('transmission') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="doors">Portas *</label>
+              <select id="doors" 
+                      formControlName="doors"
+                      class="form-control"
+                      [class.is-invalid]="hasError('doors', 'required')">
+                <option value="">Selecione</option>
+                <option value="2">2 portas</option>
+                <option value="4">4 portas</option>
+                <option value="5">5 portas</option>
+              </select>
+              <div *ngIf="hasError('doors', 'required')" class="invalid-feedback">
+                {{ getFieldError('doors') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="form-section">
+          <div class="section-header">
+            <h3>Observações</h3>
+            <p class="section-description">Informações adicionais sobre o veículo</p>
+          </div>
+          
+          <div class="form-group">
+            <label for="observations">Observações adicionais</label>
+            <textarea id="observations" 
+                      formControlName="observations"
+                      class="form-control"
+                      rows="4"
+                      placeholder="Informações adicionais sobre o veículo..."></textarea>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="form-actions">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="changes-summary" *ngIf="hasChanges()">
+                <i class="fas fa-info-circle text-info me-2"></i>
+                <span class="text-info">Você tem alterações não salvas</span>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="action-buttons">
+                <button type="button" 
+                        class="btn btn-outline-secondary me-2" 
+                        (click)="cancel()">
+                  Cancelar
+                </button>
+                
+                <button type="submit" 
+                        class="btn btn-primary"
+                        [disabled]="!vehicleForm.valid || isSubmitting || !hasChanges()">
+                  <span *ngIf="isSubmitting">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Salvando...
+                  </span>
+                  <span *ngIf="!isSubmitting">
+                    <i class="fas fa-save me-2"></i>
+                    Salvar Alterações
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

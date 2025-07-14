@@ -137,16 +137,12 @@ export class Dashboard implements OnInit, OnDestroy {
 
   // Ver detalhes do veículo
   viewVehicleDetails(vehicleId: string): void {
-    // Implementar quando tiver página de detalhes
-    console.log('Ver detalhes do veículo:', vehicleId);
-    alert('Página de detalhes do veículo será implementada em breve!');
+    this.router.navigate(['/vehicles', vehicleId]);
   }
 
   // Editar veículo
   editVehicle(vehicleId: string): void {
-    // Implementar quando tiver página de edição
-    console.log('Editar veículo:', vehicleId);
-    alert('Página de edição de veículo será implementada em breve!');
+    this.router.navigate(['/vehicles', vehicleId, 'edit']);
   }
 
   // Remover veículo
