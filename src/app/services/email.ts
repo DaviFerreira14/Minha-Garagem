@@ -1,4 +1,4 @@
-// src/app/services/email.ts - VERSÃO CORRIGIDA
+// src/app/services/email.ts - VERSÃO COMPLETA CORRIGIDA
 import { Injectable } from '@angular/core';
 import emailjs from '@emailjs/browser';
 import { Maintenance } from './maintenance';
@@ -16,11 +16,7 @@ export class EmailService {
   constructor() {
     // Inicializar EmailJS
     emailjs.init(this.publicKey);
-    console.log('📧 EmailJS inicializado com:', {
-      serviceId: this.serviceId,
-      templateId: this.templateId,
-      publicKey: this.publicKey.substring(0, 10) + '...'
-    });
+    console.log('📧 EmailJS inicializado');
   }
 
   // Enviar lembrete de manutenção
@@ -30,17 +26,33 @@ export class EmailService {
     userName: string
   ): Promise<boolean> {
     try {
+      // Função para formatar data corretamente
+      const formatDateCorrectly = (date: Date): string => {
+        // Garantir que estamos trabalhando com o fuso horário local
+        const localDate = new Date(date);
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const year = localDate.getFullYear();
+        return `${day}/${month}/${year}`;
+      };
+
       const templateParams = {
         to_email: userEmail,
         to_name: userName,
         maintenance_title: maintenance.title,
         vehicle_name: maintenance.vehicleName,
-        maintenance_date: new Date(maintenance.date).toLocaleDateString('pt-BR'),
+        maintenance_date: formatDateCorrectly(maintenance.date),
         total_cost: maintenance.totalCost.toFixed(2),
-        items_list: this.formatItemsList(maintenance.items),
+        items_list: this.formatItemsList(maintenance.items), // ← MÉTODO CORRIGIDO
         notes: maintenance.notes || 'Nenhuma observação especial',
         current_year: new Date().getFullYear()
       };
+
+      console.log('📤 Enviando email para manutenção:', {
+        title: maintenance.title,
+        date: templateParams.maintenance_date,
+        vehicle: maintenance.vehicleName
+      });
 
       const response = await emailjs.send(
         this.serviceId,
@@ -48,6 +60,7 @@ export class EmailService {
         templateParams
       );
 
+      console.log('✅ Email enviado com sucesso');
       return true;
     } catch (error) {
       console.error('❌ Erro ao enviar email:', error);
@@ -55,7 +68,7 @@ export class EmailService {
     }
   }
 
-  // Formatar lista de itens para o email
+  // MÉTODO FORMATITEMSLIST - CORRIGIDO E ADICIONADO
   private formatItemsList(items: any[]): string {
     if (!items || items.length === 0) {
       return 'Nenhum item especificado';
@@ -69,14 +82,17 @@ export class EmailService {
   // Enviar email de teste
   async sendTestEmail(email: string, name: string): Promise<boolean> {
     try {
+      const today = new Date();
+      const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+      
       const templateParams = {
         to_email: email,
         to_name: name,
         maintenance_title: 'Teste do Sistema',
         vehicle_name: 'Honda Civic 2020 (Teste)',
-        maintenance_date: new Date().toLocaleDateString('pt-BR'),
+        maintenance_date: formattedDate,
         total_cost: '150.00',
-        items_list: '• Teste de envio de email - R$ 150.00',
+        items_list: '• Teste de envio de email - R$ 150,00',
         notes: 'Este é um email de teste para verificar se o sistema está funcionando.',
         current_year: new Date().getFullYear()
       };
@@ -87,6 +103,7 @@ export class EmailService {
         templateParams
       );
 
+      console.log('✅ Email de teste enviado');
       return true;
     } catch (error) {
       console.error('❌ Erro no email de teste:', error);
@@ -94,7 +111,7 @@ export class EmailService {
     }
   }
 
-  // MÉTODO CORRIGIDO: Verificar se EmailJS está configurado
+  // Verificar se EmailJS está configurado
   isConfigured(): boolean {
     // Verificar se as chaves não estão vazias e não são os valores padrão antigos
     const isServiceIdValid = Boolean(this.serviceId && 
@@ -114,7 +131,7 @@ export class EmailService {
     return configured;
   }
 
-  // Método para debug
+  // Método para debug (opcional)
   getConfigurationStatus(): any {
     return {
       serviceId: this.serviceId,

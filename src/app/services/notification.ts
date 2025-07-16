@@ -76,54 +76,84 @@ export class NotificationService {
     }
   }
 
-  // Obter manutenções agendadas para hoje
-  private async getTodayMaintenances(): Promise<Maintenance[]> {
-    try {
-      const allMaintenances = await this.maintenanceService.getUserMaintenances();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+ // CORREÇÃO NO notification.service.ts
+// Substitua os métodos getTodayMaintenances e getTomorrowMaintenances:
+
+// Obter manutenções agendadas para hoje
+private async getTodayMaintenances(): Promise<Maintenance[]> {
+  try {
+    const allMaintenances = await this.maintenanceService.getUserMaintenances();
+    
+    // Criar data de hoje no fuso horário local
+    const today = new Date();
+    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const tomorrowLocal = new Date(todayLocal);
+    tomorrowLocal.setDate(tomorrowLocal.getDate() + 1);
+
+    console.log('Verificando manutenções para hoje:', todayLocal.toLocaleDateString('pt-BR'));
+
+    return allMaintenances.filter(maintenance => {
+      if (maintenance.type !== 'agendada') return false;
       
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      return allMaintenances.filter(maintenance => {
-        if (maintenance.type !== 'agendada') return false;
-        
-        const maintenanceDate = new Date(maintenance.date);
-        maintenanceDate.setHours(0, 0, 0, 0);
-        
-        return maintenanceDate >= today && maintenanceDate < tomorrow;
-      });
-    } catch (error) {
-      console.error('Erro ao buscar manutenções de hoje:', error);
-      return [];
-    }
-  }
-
-  // Obter manutenções agendadas para amanhã
-  private async getTomorrowMaintenances(): Promise<Maintenance[]> {
-    try {
-      const allMaintenances = await this.maintenanceService.getUserMaintenances();
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
+      // Converter data da manutenção para objeto Date local
+      const maintenanceDate = new Date(maintenance.date);
+      const maintenanceDateLocal = new Date(
+        maintenanceDate.getFullYear(), 
+        maintenanceDate.getMonth(), 
+        maintenanceDate.getDate()
+      );
       
-      const dayAfterTomorrow = new Date(tomorrow);
-      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
-
-      return allMaintenances.filter(maintenance => {
-        if (maintenance.type !== 'agendada') return false;
-        
-        const maintenanceDate = new Date(maintenance.date);
-        maintenanceDate.setHours(0, 0, 0, 0);
-        
-        return maintenanceDate >= tomorrow && maintenanceDate < dayAfterTomorrow;
-      });
-    } catch (error) {
-      console.error('Erro ao buscar manutenções de amanhã:', error);
-      return [];
-    }
+      const isToday = maintenanceDateLocal.getTime() === todayLocal.getTime();
+      
+      if (isToday) {
+        console.log('Manutenção encontrada para hoje:', maintenance.title, maintenanceDateLocal.toLocaleDateString('pt-BR'));
+      }
+      
+      return isToday;
+    });
+  } catch (error) {
+    console.error('Erro ao buscar manutenções de hoje:', error);
+    return [];
   }
+}
+
+// Obter manutenções agendadas para amanhã
+private async getTomorrowMaintenances(): Promise<Maintenance[]> {
+  try {
+    const allMaintenances = await this.maintenanceService.getUserMaintenances();
+    
+    // Criar data de amanhã no fuso horário local
+    const today = new Date();
+    const tomorrowLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    tomorrowLocal.setDate(tomorrowLocal.getDate() + 1);
+
+    console.log('Verificando manutenções para amanhã:', tomorrowLocal.toLocaleDateString('pt-BR'));
+
+    return allMaintenances.filter(maintenance => {
+      if (maintenance.type !== 'agendada') return false;
+      
+      // Converter data da manutenção para objeto Date local
+      const maintenanceDate = new Date(maintenance.date);
+      const maintenanceDateLocal = new Date(
+        maintenanceDate.getFullYear(), 
+        maintenanceDate.getMonth(), 
+        maintenanceDate.getDate()
+      );
+      
+      const isTomorrow = maintenanceDateLocal.getTime() === tomorrowLocal.getTime();
+      
+      if (isTomorrow) {
+        console.log('Manutenção encontrada para amanhã:', maintenance.title, maintenanceDateLocal.toLocaleDateString('pt-BR'));
+      }
+      
+      return isTomorrow;
+    });
+  } catch (error) {
+    console.error('Erro ao buscar manutenções de amanhã:', error);
+    return [];
+  }
+}
 
   // Enviar lembrete de manutenção
   private async sendMaintenanceReminder(

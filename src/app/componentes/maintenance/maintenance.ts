@@ -321,78 +321,91 @@ export class MaintenanceComponent implements OnInit {
     this.filteredMaintenances = filtered;
   }
 
-  async onSubmit(): Promise<void> {
-    if (this.maintenanceForm.valid && this.validateMaintenanceDate()) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      this.successMessage = '';
+ // CORREÇÃO NO maintenance.component.ts
+// Substitua o método onSubmit existente por esta versão corrigida:
 
-      try {
-        const formValue = this.maintenanceForm.value;
-        
-        // Encontrar o veículo selecionado
-        const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
-        if (!selectedVehicle) {
-          this.errorMessage = 'Veículo não encontrado';
-          this.isLoading = false;
-          return;
-        }
+async onSubmit(): Promise<void> {
+  if (this.maintenanceForm.valid && this.validateMaintenanceDate()) {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-        // Filtrar itens válidos (com descrição)
-        const validItems: MaintenanceItem[] = formValue.items
-          .filter((item: any) => item.description && item.description.trim())
-          .map((item: any) => ({
-            description: item.description.trim(),
-            cost: Number(item.cost) || 0
-          }));
-
-        if (validItems.length === 0) {
-          this.errorMessage = 'Adicione pelo menos um item válido';
-          this.isLoading = false;
-          return;
-        }
-
-        // Calcular total
-        const totalCost = validItems.reduce((sum, item) => sum + item.cost, 0);
-
-        // Criar objeto de manutenção
-        const maintenance: Omit<MaintenanceModel, 'id' | 'userId' | 'createdAt'> = {
-          vehicleId: formValue.vehicleId,
-          vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
-          type: formValue.type,
-          date: new Date(formValue.date),
-          title: formValue.title.trim(),
-          items: validItems,
-          totalCost: totalCost,
-          notes: formValue.notes?.trim() || ''
-        };
-
-        // Salvar no Firebase
-        const result = await this.maintenanceService.addMaintenance(maintenance);
-
-        if (result.success) {
-          this.successMessage = result.message;
-          this.resetForm();
-          this.showAddForm = false;
-          await this.loadMaintenances(); // Recarregar lista
-        } else {
-          this.errorMessage = result.message;
-        }
-      } catch (error) {
-        console.error('Erro ao salvar manutenção:', error);
-        this.errorMessage = 'Erro inesperado ao salvar manutenção';
-      } finally {
+    try {
+      const formValue = this.maintenanceForm.value;
+      
+      // Encontrar o veículo selecionado
+      const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
+      if (!selectedVehicle) {
+        this.errorMessage = 'Veículo não encontrado';
         this.isLoading = false;
+        return;
       }
-    } else {
-      this.markFormGroupTouched(this.maintenanceForm);
-      if (!this.validateMaintenanceDate()) {
-        // A mensagem de erro já foi definida no validateMaintenanceDate
+
+      // Filtrar itens válidos (com descrição)
+      const validItems: MaintenanceItem[] = formValue.items
+        .filter((item: any) => item.description && item.description.trim())
+        .map((item: any) => ({
+          description: item.description.trim(),
+          cost: Number(item.cost) || 0
+        }));
+
+      if (validItems.length === 0) {
+        this.errorMessage = 'Adicione pelo menos um item válido';
+        this.isLoading = false;
+        return;
+      }
+
+      // Calcular total
+      const totalCost = validItems.reduce((sum, item) => sum + item.cost, 0);
+
+      // CORREÇÃO DE FUSO HORÁRIO: Criar data correta sem conversão UTC
+      const dateInput = formValue.date; // String no formato YYYY-MM-DD
+      const [year, month, day] = dateInput.split('-').map(Number);
+      
+      // Criar data no fuso horário local (evitar conversão UTC)
+      const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0); // 12h para evitar problemas de DST
+      
+      console.log('Data original do formulário:', dateInput);
+      console.log('Data corrigida para salvar:', correctDate);
+
+      // Criar objeto de manutenção
+      const maintenance: Omit<MaintenanceModel, 'id' | 'userId' | 'createdAt'> = {
+        vehicleId: formValue.vehicleId,
+        vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
+        type: formValue.type,
+        date: correctDate, // ← USANDO A DATA CORRIGIDA
+        title: formValue.title.trim(),
+        items: validItems,
+        totalCost: totalCost,
+        notes: formValue.notes?.trim() || ''
+      };
+
+      // Salvar no Firebase
+      const result = await this.maintenanceService.addMaintenance(maintenance);
+
+      if (result.success) {
+        this.successMessage = result.message;
+        this.resetForm();
+        this.showAddForm = false;
+        await this.loadMaintenances(); // Recarregar lista
       } else {
-        this.errorMessage = 'Por favor, corrija os erros no formulário';
+        this.errorMessage = result.message;
       }
+    } catch (error) {
+      console.error('Erro ao salvar manutenção:', error);
+      this.errorMessage = 'Erro inesperado ao salvar manutenção';
+    } finally {
+      this.isLoading = false;
+    }
+  } else {
+    this.markFormGroupTouched(this.maintenanceForm);
+    if (!this.validateMaintenanceDate()) {
+      // A mensagem de erro já foi definida no validateMaintenanceDate
+    } else {
+      this.errorMessage = 'Por favor, corrija os erros no formulário';
     }
   }
+}
 
   async deleteMaintenance(maintenanceId: string): Promise<void> {
     if (confirm('Tem certeza que deseja excluir esta manutenção?')) {
