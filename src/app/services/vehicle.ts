@@ -1,5 +1,9 @@
+// src/app/services/vehicle.ts - VERSÃO SIMPLIFICADA
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { collection, addDoc, query, where, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase.config';
+import { AuthService } from './auth';
 
 export interface Vehicle {
   id: string;
@@ -16,202 +20,182 @@ export interface Vehicle {
   observations?: string;
   photo?: string;
   userId: string;
-  createdAt: string;
-  updatedAt?: string;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class VehicleService {
-  private readonly STORAGE_KEY = 'vehicles';
   private vehiclesSubject = new BehaviorSubject<Vehicle[]>([]);
   public vehicles$ = this.vehiclesSubject.asObservable();
+  private unsubscribeSnapshot: (() => void) | null = null;
 
-  constructor() {
-    this.loadVehiclesFromStorage();
+  constructor(private authService: AuthService) {
+    this.initializeVehicleListener();
   }
 
-  // Carregar veículos do localStorage
-  private loadVehiclesFromStorage(): void {
-    try {
-      const storedVehicles = localStorage.getItem(this.STORAGE_KEY);
-      if (storedVehicles) {
-        const vehicles = JSON.parse(storedVehicles);
-        this.vehiclesSubject.next(vehicles);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar veículos do storage:', error);
-      this.vehiclesSubject.next([]);
+  // ===== LISTENER E SINCRONIZAÇÃO =====
+  private initializeVehicleListener(): void {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      console.log('Usuário não logado - listener não iniciado');
+      return;
     }
-  }
 
-  // Salvar veículos no localStorage
-  private saveVehiclesToStorage(vehicles: Vehicle[]): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(vehicles));
-    } catch (error) {
-      console.error('Erro ao salvar veículos no storage:', error);
-    }
-  }
+    console.log('🚗 Iniciando listener para:', currentUser.uid);
 
-  // Obter todos os veículos
-  getVehicles(): Observable<Vehicle[]> {
-    return this.vehicles$;
-  }
+    const q = query(collection(db, 'vehicles'), where('userId', '==', currentUser.uid));
 
-  // Obter todos os veículos de forma síncrona
-  getVehiclesSync(): Vehicle[] {
-    return this.vehiclesSubject.value;
-  }
+    this.unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+      const vehicles = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data()['createdAt']?.toDate() || new Date(),
+        updatedAt: doc.data()['updatedAt']?.toDate()
+      } as Vehicle));
 
-  // Obter veículos por usuário
-  getVehiclesByUser(userId: string): Observable<Vehicle[]> {
-    return new Observable(observer => {
-      this.vehicles$.subscribe(vehicles => {
-        const userVehicles = vehicles.filter(vehicle => vehicle.userId === userId);
-        observer.next(userVehicles);
-      });
+      // Ordenar por data (mais recente primeiro)
+      vehicles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      console.log('🔄 Veículos atualizados:', vehicles.length);
+      this.vehiclesSubject.next(vehicles);
+    }, (error) => {
+      console.error('❌ Erro no listener:', error);
     });
   }
 
-  // Obter veículo por ID
+  private stopVehicleListener(): void {
+    this.unsubscribeSnapshot?.();
+    this.unsubscribeSnapshot = null;
+  }
+
+  reinitializeListener(): void {
+    this.stopVehicleListener();
+    this.initializeVehicleListener();
+  }
+
+  // ===== MÉTODOS DE ACESSO =====
+  getVehicles = (): Observable<Vehicle[]> => this.vehicles$;
+  getVehiclesSync = (): Vehicle[] => this.vehiclesSubject.value;
+  getVehiclesByUser = (userId: string): Observable<Vehicle[]> => this.vehicles$; // Já filtrado
+  getVehicleCount = (): number => this.vehiclesSubject.value.length;
+  getVehicleCountByUser = (userId: string): number => this.vehiclesSubject.value.length;
+  hasVehicles = (): boolean => this.vehiclesSubject.value.length > 0;
+  userHasVehicles = (userId: string): boolean => this.vehiclesSubject.value.length > 0;
+
   getVehicleById(id: string): Vehicle | null {
+    return this.vehiclesSubject.value.find(vehicle => vehicle.id === id) || null;
+  }
+
+  getLatestVehicle(): Vehicle | null {
     const vehicles = this.vehiclesSubject.value;
-    return vehicles.find(vehicle => vehicle.id === id) || null;
+    return vehicles.length === 0 ? null : 
+      vehicles.reduce((latest, current) => 
+        new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
+      );
   }
 
-  // Adicionar novo veículo
-  addVehicle(vehicleData: Omit<Vehicle, 'id' | 'createdAt'>): Promise<Vehicle> {
-    return new Promise((resolve, reject) => {
-      try {
-        const newVehicle: Vehicle = {
-          ...vehicleData,
-          id: this.generateId(),
-          createdAt: new Date().toISOString()
-        };
+  // ===== CRUD OPERATIONS =====
+  async addVehicle(vehicleData: Omit<Vehicle, 'id' | 'createdAt'>): Promise<Vehicle> {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) throw new Error('Usuário não autenticado');
 
-        const currentVehicles = this.vehiclesSubject.value;
-        const updatedVehicles = [...currentVehicles, newVehicle];
-        
-        this.saveVehiclesToStorage(updatedVehicles);
-        this.vehiclesSubject.next(updatedVehicles);
-        
-        console.log('Veículo adicionado com sucesso:', newVehicle);
-        resolve(newVehicle);
-      } catch (error) {
-        console.error('Erro ao adicionar veículo:', error);
-        reject(error);
-      }
-    });
+    const newVehicleData = {
+      ...vehicleData,
+      userId: currentUser.uid,
+      createdAt: new Date()
+    };
+
+    console.log('💾 Salvando veículo:', newVehicleData.brand, newVehicleData.model);
+
+    try {
+      const docRef = await addDoc(collection(db, 'vehicles'), newVehicleData);
+      
+      const savedVehicle: Vehicle = {
+        id: docRef.id,
+        ...newVehicleData
+      };
+
+      console.log('✅ Veículo salvo com ID:', docRef.id);
+      return savedVehicle;
+    } catch (error) {
+      console.error('❌ Erro ao adicionar veículo:', error);
+      throw error;
+    }
   }
 
-  // Atualizar veículo
-  updateVehicle(id: string, vehicleData: Partial<Vehicle>): Promise<Vehicle> {
-    return new Promise((resolve, reject) => {
-      try {
-        const currentVehicles = this.vehiclesSubject.value;
-        const vehicleIndex = currentVehicles.findIndex(v => v.id === id);
-        
-        if (vehicleIndex === -1) {
-          reject(new Error('Veículo não encontrado'));
-          return;
-        }
+  async updateVehicle(id: string, vehicleData: Partial<Vehicle>): Promise<Vehicle> {
+    if (!id) throw new Error('ID do veículo é obrigatório');
 
-        const updatedVehicle: Vehicle = {
-          ...currentVehicles[vehicleIndex],
-          ...vehicleData,
-          updatedAt: new Date().toISOString()
-        };
+    const updateData = {
+      ...vehicleData,
+      updatedAt: new Date()
+    };
 
-        const updatedVehicles = [...currentVehicles];
-        updatedVehicles[vehicleIndex] = updatedVehicle;
-        
-        this.saveVehiclesToStorage(updatedVehicles);
-        this.vehiclesSubject.next(updatedVehicles);
-        
-        resolve(updatedVehicle);
-      } catch (error) {
-        console.error('Erro ao atualizar veículo:', error);
-        reject(error);
-      }
-    });
+    // Remover campos que não devem ser atualizados
+    ['id', 'createdAt', 'userId'].forEach(field => delete (updateData as any)[field]);
+
+    try {
+      await updateDoc(doc(db, 'vehicles', id), updateData);
+
+      const currentVehicles = this.vehiclesSubject.value;
+      const vehicleIndex = currentVehicles.findIndex(v => v.id === id);
+      
+      if (vehicleIndex === -1) throw new Error('Veículo não encontrado');
+
+      const updatedVehicle: Vehicle = {
+        ...currentVehicles[vehicleIndex],
+        ...updateData as Partial<Vehicle>
+      };
+
+      console.log('✅ Veículo atualizado:', id);
+      return updatedVehicle;
+    } catch (error) {
+      console.error('❌ Erro ao atualizar veículo:', error);
+      throw error;
+    }
   }
 
-  // Remover veículo
-  removeVehicle(id: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      try {
-        const currentVehicles = this.vehiclesSubject.value;
-        const updatedVehicles = currentVehicles.filter(v => v.id !== id);
-        
-        this.saveVehiclesToStorage(updatedVehicles);
-        this.vehiclesSubject.next(updatedVehicles);
-        
-        resolve();
-      } catch (error) {
-        console.error('Erro ao remover veículo:', error);
-        reject(error);
-      }
-    });
+  async removeVehicle(id: string): Promise<void> {
+    if (!id) throw new Error('ID do veículo é obrigatório');
+
+    try {
+      await deleteDoc(doc(db, 'vehicles', id));
+      console.log('✅ Veículo removido:', id);
+    } catch (error) {
+      console.error('❌ Erro ao remover veículo:', error);
+      throw error;
+    }
   }
 
-  // Gerar ID único
-  private generateId(): string {
-    return 'vehicle_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  async clearAllVehicles(): Promise<void> {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) return;
+
+    const vehicles = this.vehiclesSubject.value;
+    
+    try {
+      await Promise.all(vehicles.map(vehicle => 
+        vehicle.id ? this.removeVehicle(vehicle.id) : Promise.resolve()
+      ));
+      console.log('🧹 Todos os veículos removidos');
+    } catch (error) {
+      console.error('❌ Erro ao limpar veículos:', error);
+    }
   }
 
-  // Obter contagem de veículos
-  getVehicleCount(): number {
-    return this.vehiclesSubject.value.length;
-  }
-
-  // Obter contagem de veículos por usuário
-  getVehicleCountByUser(userId: string): number {
-    return this.vehiclesSubject.value.filter(v => v.userId === userId).length;
-  }
-
-  // Limpar todos os veículos (para desenvolvimento/teste)
-  clearAllVehicles(): void {
-    this.vehiclesSubject.next([]);
-    localStorage.removeItem(this.STORAGE_KEY);
-  }
-
-  // Verificar se há veículos
-  hasVehicles(): boolean {
-    return this.vehiclesSubject.value.length > 0;
-  }
-
-  // Verificar se usuário tem veículos
-  userHasVehicles(userId: string): boolean {
-    return this.vehiclesSubject.value.some(v => v.userId === userId);
-  }
-
-  // Processar arquivo de imagem para base64
+  // ===== UTILITÁRIOS =====
   processImageFile(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        resolve(e.target.result);
-      };
-      reader.onerror = () => {
-        reject(new Error('Erro ao processar imagem'));
-      };
+      reader.onload = (e: any) => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Erro ao processar imagem'));
       reader.readAsDataURL(file);
     });
   }
 
-  // Obter veículo mais recente
-  getLatestVehicle(): Vehicle | null {
-    const vehicles = this.vehiclesSubject.value;
-    if (vehicles.length === 0) return null;
-    
-    return vehicles.reduce((latest, current) => {
-      return new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest;
-    });
-  }
-
-  // Obter estatísticas básicas
   getVehicleStats() {
     const vehicles = this.vehiclesSubject.value;
     const totalVehicles = vehicles.length;
@@ -227,28 +211,65 @@ export class VehicleService {
       };
     }
 
-    const byFuel = vehicles.reduce((acc, vehicle) => {
-      acc[vehicle.fuel] = (acc[vehicle.fuel] || 0) + 1;
+    // Agrupar por combustível e transmissão
+    const byFuel = vehicles.reduce((acc, v) => {
+      acc[v.fuel] = (acc[v.fuel] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    const byTransmission = vehicles.reduce((acc, vehicle) => {
-      acc[vehicle.transmission] = (acc[vehicle.transmission] || 0) + 1;
+    const byTransmission = vehicles.reduce((acc, v) => {
+      acc[v.transmission] = (acc[v.transmission] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
+    // Calcular estatísticas de anos
     const years = vehicles.map(v => v.year);
     const averageYear = Math.round(years.reduce((sum, year) => sum + year, 0) / years.length);
-    const newestYear = Math.max(...years);
-    const oldestYear = Math.min(...years);
 
     return {
       total: totalVehicles,
       byFuel,
       byTransmission,
       averageYear,
-      newestYear,
-      oldestYear
+      newestYear: Math.max(...years),
+      oldestYear: Math.min(...years)
     };
+  }
+
+  // ===== MIGRAÇÃO =====
+  async migrateFromLocalStorage(): Promise<void> {
+    try {
+      const storedVehicles = localStorage.getItem('vehicles');
+      if (!storedVehicles) {
+        console.log('📭 Nenhum veículo para migrar');
+        return;
+      }
+
+      const localVehicles = JSON.parse(storedVehicles);
+      if (!Array.isArray(localVehicles) || localVehicles.length === 0) {
+        console.log('📭 Dados inválidos no localStorage');
+        return;
+      }
+
+      console.log(`🚚 Migrando ${localVehicles.length} veículos...`);
+
+      for (const vehicle of localVehicles) {
+        try {
+          // Limpar campos desnecessários
+          const { id, createdAt, updatedAt, ...vehicleToMigrate } = vehicle;
+          
+          await this.addVehicle(vehicleToMigrate);
+          console.log('✅ Migrado:', vehicle.brand, vehicle.model);
+        } catch (error) {
+          console.error('❌ Erro na migração:', vehicle.brand, error);
+        }
+      }
+
+      // Limpar localStorage após migração
+      localStorage.removeItem('vehicles');
+      console.log('🎉 Migração concluída!');
+    } catch (error) {
+      console.error('❌ Erro na migração:', error);
+    }
   }
 }

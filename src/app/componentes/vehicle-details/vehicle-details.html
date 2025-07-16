@@ -83,7 +83,8 @@
             <h1 class="vehicle-title">{{ getVehicleFullName() }}</h1>
             <p class="vehicle-subtitle">
               <span class="text-muted">{{ vehicle.color }} • {{ vehicle.licensePlate }}</span>
-              <span class="badge {{ getFuelBadgeClass() }} ms-2">{{ getFuelDisplayName() }}</span>
+              <!-- CORRIGIDO: Passando parâmetro para os métodos -->
+              <span class="badge {{ getFuelBadgeClass(vehicle.fuel) }} ms-2">{{ getFuelDisplayName(vehicle.fuel) }}</span>
             </p>
           </div>
           <div class="col-md-4 text-end">
@@ -141,6 +142,7 @@
                   <i class="fas fa-wrench"></i>
                 </div>
                 <div class="stat-content">
+                  <!-- CORRIGIDO: Usando getter ao invés de propriedade -->
                   <div class="stat-value">{{ formatMileage(nextMaintenanceKm) }}</div>
                   <div class="stat-label">Próxima Revisão</div>
                 </div>
@@ -205,11 +207,13 @@
                   <div class="spec-list">
                     <div class="spec-item">
                       <span class="spec-label">Combustível:</span>
-                      <span class="spec-value">{{ getFuelDisplayName() }}</span>
+                      <!-- CORRIGIDO: Passando parâmetro para o método -->
+                      <span class="spec-value">{{ getFuelDisplayName(vehicle.fuel) }}</span>
                     </div>
                     <div class="spec-item">
                       <span class="spec-label">Transmissão:</span>
-                      <span class="spec-value">{{ getTransmissionDisplayName() }}</span>
+                      <!-- CORRIGIDO: Passando parâmetro para o método -->
+                      <span class="spec-value">{{ getTransmissionDisplayName(vehicle.transmission) }}</span>
                     </div>
                     <div class="spec-item">
                       <span class="spec-label">Motor:</span>

@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 
-// Serviços
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
 
@@ -14,17 +13,15 @@ import { AuthService } from '../../services/auth';
   templateUrl: './vehicle-details.html',
   styleUrls: ['./vehicle-details.css']
 })
-export class VehicleDetails implements OnInit, OnDestroy {
+export class VehicleDetailsComponent implements OnInit, OnDestroy {
+  
+  // Estados principais
   vehicle: Vehicle | null = null;
   isLoading = true;
+  isDeleting = false;
   error: string | null = null;
   
-  // Subscriptions
-  private routeSubscription: Subscription = new Subscription();
-  
-  // Estatísticas calculadas
-  vehicleAge: number = 0;
-  nextMaintenanceKm: number = 0;
+  private routeSubscription = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
@@ -41,236 +38,269 @@ export class VehicleDetails implements OnInit, OnDestroy {
     this.routeSubscription.unsubscribe();
   }
 
-  // Carregar detalhes do veículo
+  // ===== CARREGAMENTO =====
   private loadVehicleDetails(): void {
     this.routeSubscription = this.route.params.subscribe(params => {
       const vehicleId = params['id'];
-      if (vehicleId) {
-        this.loadVehicle(vehicleId);
-      } else {
-        this.error = 'ID do veículo não fornecido';
-        this.isLoading = false;
-      }
+      vehicleId ? this.loadVehicle(vehicleId) : this.setError('ID do veículo não fornecido');
     });
   }
 
-  // Carregar veículo específico
   private loadVehicle(vehicleId: string): void {
     try {
       const vehicle = this.vehicleService.getVehicleById(vehicleId);
       
-      if (!vehicle) {
-        this.error = 'Veículo não encontrado';
-        this.isLoading = false;
-        return;
-      }
-
-      // Verificar se o veículo pertence ao usuário logado
+      if (!vehicle) return this.setError('Veículo não encontrado');
+      
+      // Verificar permissão
       const currentUserId = this.authService.getUserId();
       if (vehicle.userId !== currentUserId) {
-        this.error = 'Você não tem permissão para ver este veículo';
-        this.isLoading = false;
-        return;
+        return this.setError('Você não tem permissão para visualizar este veículo');
       }
 
       this.vehicle = vehicle;
-      this.calculateVehicleStats();
       this.isLoading = false;
+      console.log('Veículo carregado:', vehicle.brand, vehicle.model);
 
     } catch (error) {
       console.error('Erro ao carregar veículo:', error);
-      this.error = 'Erro ao carregar detalhes do veículo';
-      this.isLoading = false;
+      this.setError('Erro ao carregar detalhes do veículo');
     }
   }
 
-  // Calcular estatísticas do veículo
-  private calculateVehicleStats(): void {
+  private setError(message: string): void {
+    this.error = message;
+    this.isLoading = false;
+  }
+
+  // ===== AÇÕES PRINCIPAIS =====
+  editVehicle(): void {
+    if (!this.vehicle?.id) return;
+    this.router.navigate(['/vehicles', this.vehicle.id, 'edit']);
+  }
+
+  async removeVehicle(): Promise<void> {
+    if (!this.vehicle?.id) return;
+
+    if (!confirm(`Tem certeza que deseja remover ${this.getVehicleFullName()}?`)) return;
+
+    this.isDeleting = true;
+    
+    try {
+      await this.vehicleService.removeVehicle(this.vehicle.id);
+      console.log('Veículo removido com sucesso');
+      this.router.navigate(['/dashboard']);
+    } catch (error) {
+      console.error('Erro ao remover veículo:', error);
+      alert('Erro ao remover veículo. Tente novamente.');
+    } finally {
+      this.isDeleting = false;
+    }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  // ===== MÉTODOS FALTANTES - DROPDOWN ACTIONS =====
+  duplicateVehicle(): void {
     if (!this.vehicle) return;
-
-    // Calcular idade do veículo
-    const currentYear = new Date().getFullYear();
-    this.vehicleAge = currentYear - this.vehicle.year;
-
-    // Calcular próxima manutenção (a cada 10.000 km)
-    this.nextMaintenanceKm = Math.ceil(this.vehicle.mileage / 10000) * 10000;
+    
+    // Navegar para adicionar veículo com dados preenchidos
+    this.router.navigate(['/add-vehicle'], {
+      queryParams: { 
+        duplicate: true,
+        vehicleId: this.vehicle.id
+      }
+    });
   }
 
-  
-  // Formatar quilometragem
-  formatMileage(mileage: number): string {
-    return new Intl.NumberFormat('pt-BR').format(mileage) + ' km';
+  shareVehicle(): void {
+    if (!this.vehicle) return;
+    
+    // Implementar compartilhamento (exemplo com Web Share API)
+    if (navigator.share) {
+      navigator.share({
+        title: `${this.getVehicleFullName()} - Minha Garagem`,
+        text: `Confira meu ${this.getVehicleFullName()} na Minha Garagem`,
+        url: window.location.href
+      }).catch(err => console.log('Erro ao compartilhar:', err));
+    } else {
+      // Fallback: copiar URL para clipboard
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Link copiado para a área de transferência!');
+      }).catch(() => {
+        alert('Não foi possível copiar o link.');
+      });
+    }
   }
 
-  // Formatar data
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
+  // ===== MÉTODOS FALTANTES - MANUTENÇÃO =====
+  addMaintenance(): void {
+    if (!this.vehicle) return;
+    
+    this.router.navigate(['/maintenance'], {
+      queryParams: { 
+        action: 'add',
+        vehicleId: this.vehicle.id
+      }
+    });
+  }
+
+  viewMaintenanceHistory(): void {
+    if (!this.vehicle) return;
+    
+    this.router.navigate(['/maintenance'], {
+      queryParams: { 
+        vehicleId: this.vehicle.id
+      }
+    });
+  }
+
+  // ===== MÉTODOS FALTANTES - GASTOS =====
+  addExpense(): void {
+    if (!this.vehicle) return;
+    
+    this.router.navigate(['/expenses'], {
+      queryParams: { 
+        action: 'add',
+        vehicleId: this.vehicle.id
+      }
+    });
+  }
+
+  viewExpenseHistory(): void {
+    if (!this.vehicle) return;
+    
+    this.router.navigate(['/expenses'], {
+      queryParams: { 
+        vehicleId: this.vehicle.id
+      }
+    });
+  }
+
+  // ===== FORMATAÇÃO E EXIBIÇÃO =====
+  getVehicleFullName(): string {
+    return this.vehicle 
+      ? `${this.vehicle.brand} ${this.vehicle.model} ${this.vehicle.year}`
+      : 'Veículo';
+  }
+
+  // CORRIGIDO: Método com parâmetro obrigatório
+  getFuelDisplayName(fuel?: string): string {
+    const fuelType = fuel || this.vehicle?.fuel || '';
+    const fuelNames = {
+      gasoline: 'Gasolina',
+      ethanol: 'Etanol', 
+      flex: 'Flex',
+      diesel: 'Diesel',
+      electric: 'Elétrico',
+      hybrid: 'Híbrido'
+    };
+    return fuelNames[fuelType as keyof typeof fuelNames] || fuelType;
+  }
+
+  // CORRIGIDO: Método com parâmetro obrigatório
+  getTransmissionDisplayName(transmission?: string): string {
+    const transmissionType = transmission || this.vehicle?.transmission || '';
+    const transmissionNames = {
+      manual: 'Manual',
+      automatic: 'Automática',
+      cvt: 'CVT'
+    };
+    return transmissionNames[transmissionType as keyof typeof transmissionNames] || transmissionType;
+  }
+
+  formatMileage = (mileage: number): string => 
+    new Intl.NumberFormat('pt-BR').format(mileage) + ' km';
+
+  // CORRIGIDO: Método com parâmetro obrigatório
+  getFuelBadgeClass(fuel?: string): string {
+    const fuelType = fuel || this.vehicle?.fuel || '';
+    const fuelClasses = {
+      gasoline: 'bg-primary',
+      ethanol: 'bg-success', 
+      flex: 'bg-info',
+      diesel: 'bg-warning',
+      electric: 'bg-success',
+      hybrid: 'bg-secondary'
+    };
+    return fuelClasses[fuelType as keyof typeof fuelClasses] || 'bg-secondary';
+  }
+
+  // MÉTODO FALTANTE: Formatação de datas
+  formatDate(date: string | Date): string {
+    if (!date) return '';
+    
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    });
+    }).format(dateObj);
   }
 
-  // Obter nome completo do veículo
-  getVehicleFullName(): string {
-    if (!this.vehicle) return '';
-    return `${this.vehicle.brand} ${this.vehicle.model} ${this.vehicle.year}`;
-  }
-
-  // Obter cor do badge de combustível
-  getFuelBadgeClass(): string {
-    if (!this.vehicle) return 'bg-secondary';
-    
-    const fuelClasses: { [key: string]: string } = {
-      'gasoline': 'bg-primary',
-      'ethanol': 'bg-success',
-      'flex': 'bg-info',
-      'diesel': 'bg-warning',
-      'electric': 'bg-success',
-      'hybrid': 'bg-secondary'
-    };
-    return fuelClasses[this.vehicle.fuel] || 'bg-secondary';
-  }
-
-  // Obter nome do combustível
-  getFuelDisplayName(): string {
-    if (!this.vehicle) return '';
-    
-    const fuelNames: { [key: string]: string } = {
-      'gasoline': 'Gasolina',
-      'ethanol': 'Etanol',
-      'flex': 'Flex',
-      'diesel': 'Diesel',
-      'electric': 'Elétrico',
-      'hybrid': 'Híbrido'
-    };
-    return fuelNames[this.vehicle.fuel] || this.vehicle.fuel;
-  }
-
-  // Obter nome da transmissão
-  getTransmissionDisplayName(): string {
-    if (!this.vehicle) return '';
-    
-    const transmissionNames: { [key: string]: string } = {
-      'manual': 'Manual',
-      'automatic': 'Automática',
-      'cvt': 'CVT'
-    };
-    return transmissionNames[this.vehicle.transmission] || this.vehicle.transmission;
-  }
-
-  // Navegar para edição
-  editVehicle(): void {
-    if (this.vehicle) {
-      this.router.navigate(['/vehicles', this.vehicle.id, 'edit']);
-    }
-  }
-
-  // Remover veículo
-  async removeVehicle(): Promise<void> {
-    if (!this.vehicle) return;
-
-    const confirmRemove = confirm(
-      `Tem certeza que deseja remover o ${this.getVehicleFullName()}?\n\nEsta ação não pode ser desfeita.`
-    );
-
-    if (confirmRemove) {
-      try {
-        await this.vehicleService.removeVehicle(this.vehicle.id);
-        console.log('Veículo removido com sucesso');
-        
-        // Mostrar mensagem de sucesso
-        alert('Veículo removido com sucesso!');
-        
-        // Navegar de volta para dashboard
-        this.router.navigate(['/dashboard']);
-        
-      } catch (error) {
-        console.error('Erro ao remover veículo:', error);
-        alert('Erro ao remover veículo. Tente novamente.');
-      }
-    }
-  }
-
-  // Duplicar veículo (criar cópia)
-  duplicateVehicle(): void {
-    if (!this.vehicle) return;
-
-    const confirmDuplicate = confirm(
-      `Deseja criar uma cópia do ${this.getVehicleFullName()}?`
-    );
-
-    if (confirmDuplicate) {
-      // Navegar para add-vehicle com dados pré-preenchidos
-      this.router.navigate(['/add-vehicle'], {
-        queryParams: {
-          duplicate: this.vehicle.id
-        }
-      });
-    }
-  }
-
-  // Compartilhar veículo (simular)
-  shareVehicle(): void {
-    if (!this.vehicle) return;
-
-    const shareText = `Confira meu ${this.getVehicleFullName()}!\n\n` +
-                     `📅 Ano: ${this.vehicle.year}\n` +
-                     `🎨 Cor: ${this.vehicle.color}\n` +
-                     `🚗 Placa: ${this.vehicle.licensePlate}\n` +
-                     `⛽ Combustível: ${this.getFuelDisplayName()}\n` +
-                     `📏 Quilometragem: ${this.formatMileage(this.vehicle.mileage)}`;
-
-    // Simular compartilhamento
-    if (navigator.share) {
-      navigator.share({
-        title: `Meu ${this.getVehicleFullName()}`,
-        text: shareText
-      }).catch(console.error);
-    } else {
-      // Fallback: copiar para clipboard
-      navigator.clipboard.writeText(shareText).then(() => {
-        alert('Informações do veículo copiadas para a área de transferência!');
-      }).catch(() => {
-        alert('Não foi possível copiar as informações.');
-      });
-    }
-  }
-
-  // Voltar para dashboard
-  goBack(): void {
+  // ===== NAVEGAÇÃO =====
+  navigateToDashboard(): void {
     this.router.navigate(['/dashboard']);
   }
 
-  // Voltar para lista de veículos
-  goToVehiclesList(): void {
-    this.router.navigate(['/vehicles']);
+  navigateToMaintenance(): void {
+    this.router.navigate(['/maintenance']);
   }
 
-  // Adicionar manutenção (placeholder)
-  addMaintenance(): void {
-    alert('Funcionalidade de manutenções será implementada em breve!');
-    // this.router.navigate(['/vehicles', this.vehicle?.id, 'maintenance', 'add']);
+  navigateToExpenses(): void {
+    this.router.navigate(['/expenses']);
   }
 
-  // Ver histórico de manutenções (placeholder)
-  viewMaintenanceHistory(): void {
-    alert('Histórico de manutenções será implementado em breve!');
-    // this.router.navigate(['/vehicles', this.vehicle?.id, 'maintenance']);
+  // ===== UTILITÁRIOS =====
+  hasPhoto(): boolean {
+    return !!(this.vehicle?.photo);
   }
 
-  // Adicionar gasto (placeholder)
-  addExpense(): void {
-    alert('Funcionalidade de gastos será implementada em breve!');
-    // this.router.navigate(['/vehicles', this.vehicle?.id, 'expenses', 'add']);
+  hasEngineSize(): boolean {
+    return !!(this.vehicle?.engineSize);
   }
 
-  // Ver histórico de gastos (placeholder)
-  viewExpenseHistory(): void {
-    alert('Histórico de gastos será implementado em breve!');
-    // this.router.navigate(['/vehicles', this.vehicle?.id, 'expenses']);
+  hasObservations(): boolean {
+    return !!(this.vehicle?.observations);
+  }
+
+  hasUpdatedDate(): boolean {
+    return !!(this.vehicle?.updatedAt);
+  }
+
+  // ===== GETTERS =====
+  get currentUser() {
+    return this.authService.getCurrentUser();
+  }
+
+  get vehicleAge(): number {
+    if (!this.vehicle) return 0;
+    return new Date().getFullYear() - this.vehicle.year;
+  }
+
+  get isNewVehicle(): boolean {
+    return this.vehicleAge <= 3;
+  }
+
+  get isOldVehicle(): boolean {
+    return this.vehicleAge >= 15;
+  }
+
+  // PROPRIEDADE FALTANTE: Próxima manutenção
+  get nextMaintenanceKm(): number {
+    if (!this.vehicle) return 0;
+    
+    // Lógica para calcular próxima manutenção
+    // Exemplo: a cada 10.000 km ou baseado na última manutenção
+    const maintenanceInterval = 10000;
+    const currentMileage = this.vehicle.mileage;
+    const nextMaintenance = Math.ceil(currentMileage / maintenanceInterval) * maintenanceInterval;
+    
+    return nextMaintenance;
   }
 }

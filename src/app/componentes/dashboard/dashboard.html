@@ -1,12 +1,11 @@
-<!-- src/app/componentes/dashboard/dashboard.html - VERSÃO COMPLETA -->
+<!-- src/app/componentes/dashboard/dashboard.html - VERSÃO SIMPLIFICADA REAL -->
 <div class="dashboard-container">
   
-  <!-- Header/Navbar -->
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
     <div class="container">
-      <a class="navbar-brand fw-bold" href="#">
-        <i class="fas fa-car me-2"></i>
-        Minha Garagem
+      <a class="navbar-brand fw-bold" (click)="navigateToDashboard()">
+        <i class="fas fa-car me-2"></i>Minha Garagem
       </a>
       
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -16,48 +15,23 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link active" href="#" (click)="$event.preventDefault()">
-              <i class="fas fa-tachometer-alt me-1"></i>
-              Dashboard
-            </a>
+            <a class="nav-link active">Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" (click)="$event.preventDefault(); navigateToVehicles()">
-              <i class="fas fa-car me-1"></i>
-              Veículos
-            </a>
+            <a class="nav-link" (click)="goToMaintenance()">Manutenções</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" (click)="$event.preventDefault(); goToMaintenance()">
-              <i class="fas fa-wrench me-1"></i>
-              Manutenções
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#" (click)="$event.preventDefault(); navigateToExpenses()">
-              <i class="fas fa-chart-line me-1"></i>
-              Gastos
-            </a>
+            <a class="nav-link" (click)="navigateToExpenses()">Gastos</a>
           </li>
         </ul>
         
         <div class="navbar-nav">
           <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-              <div class="user-avatar me-2">
-                <i class="fas fa-user"></i>
-              </div>
-              <span class="d-none d-md-inline">{{ getUserDisplayName() }}</span>
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle me-1"></i>{{ getUserDisplayName() }}
             </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#" (click)="navigateToProfile()">
-                <i class="fas fa-user-cog me-2"></i>Perfil
-              </a></li>
-              <li><a class="dropdown-item" href="#" (click)="navigateToSettings()">
-                <i class="fas fa-cog me-2"></i>Configurações
-              </a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="#" (click)="logout()">
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" (click)="logout()">
                 <i class="fas fa-sign-out-alt me-2"></i>Sair
               </a></li>
             </ul>
@@ -66,143 +40,45 @@
       </div>
     </div>
   </nav>
-  
+
   <!-- Main Content -->
   <main class="main-content">
     <div class="container py-4">
       
-      <!-- Welcome Section -->
+      <!-- Header -->
       <div class="welcome-section mb-4">
         <div class="row align-items-center">
           <div class="col-md-8">
-            <h1 class="display-5 fw-bold text-dark mb-2">
-              Olá, {{ getUserFirstName() }}!
-            </h1>
+            <h1 class="display-5 fw-bold mb-2">Olá, {{ getUserFirstName() }}!</h1>
             <p class="lead text-muted">
-              <span *ngIf="!hasVehicles">Bem-vindo à sua garagem digital. Organize seus veículos e mantenha tudo sob controle.</span>
-              <span *ngIf="hasVehicles">Você tem {{ totalVehicles }} veículo{{ totalVehicles > 1 ? 's' : '' }} em sua garagem.</span>
+              <span *ngIf="!hasVehicles">Bem-vindo à sua garagem digital.</span>
+              <span *ngIf="hasVehicles">Você tem {{ totalVehicles }} veículo{{ totalVehicles > 1 ? 's' : '' }}.</span>
             </p>
           </div>
           <div class="col-md-4 text-end">
-            <div class="date-info">
-              <small class="text-muted">{{ getCurrentDate() }}</small>
-            </div>
+            <small class="text-muted">{{ getCurrentDate() }}</small>
           </div>
         </div>
       </div>
 
-      <!-- Loading State -->
+      <!-- Loading -->
       <div *ngIf="isLoading" class="text-center py-5">
-        <div class="loading-spinner"></div>
-        <p class="text-muted mt-3">Carregando seus veículos...</p>
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-3 text-muted">Carregando...</p>
       </div>
       
-      <!-- Empty State - Quando não há veículos -->
-      <div *ngIf="!hasVehicles && !isLoading" class="empty-state">
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
-            <div class="empty-state-card text-center">
-              
-              <!-- Illustration -->
-              <div class="empty-illustration mb-4">
-                <i class="fas fa-car-side fa-6x text-primary opacity-75"></i>
-              </div>
-              
-              <!-- Title -->
-              <h2 class="fw-bold mb-3">Sua garagem está vazia</h2>
-              <p class="text-muted mb-4 lead">
-                Comece adicionando seu primeiro veículo e descubra como é fácil organizar manutenções e gastos.
-              </p>
-              
-              <!-- Primary Action -->
-              <button class="btn btn-primary btn-lg mb-4" (click)="addFirstVehicle()">
-                <i class="fas fa-plus me-2"></i>
-                Adicionar Meu Primeiro Veículo
-              </button>
-              
-              <!-- Features Preview -->
-              <div class="features-preview mt-5">
-                <h4 class="mb-4">O que você pode fazer:</h4>
-                <div class="row g-4">
-                  <div class="col-md-4">
-                    <div class="feature-card">
-                      <div class="feature-icon mb-3">
-                        <i class="fas fa-car text-primary fa-2x"></i>
-                      </div>
-                      <h5>Cadastrar Veículos</h5>
-                      <p class="text-muted small">
-                        Adicione carros, motos ou qualquer veículo com fotos e detalhes
-                      </p>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="feature-card">
-                      <div class="feature-icon mb-3">
-                        <i class="fas fa-calendar-check text-success fa-2x"></i>
-                      </div>
-                      <h5>Agendar Manutenções</h5>
-                      <p class="text-muted small">
-                        Receba lembretes por email sobre revisões e trocas de óleo
-                      </p>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="feature-card">
-                      <div class="feature-icon mb-3">
-                        <i class="fas fa-chart-pie text-warning fa-2x"></i>
-                      </div>
-                      <h5>Controlar Gastos</h5>
-                      <p class="text-muted small">
-                        Acompanhe todos os custos com combustível, peças e mão de obra
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Getting Started Tips -->
-              <div class="getting-started mt-5">
-                <div class="tips-card">
-                  <h5 class="mb-3">
-                    <i class="fas fa-lightbulb text-warning me-2"></i>
-                    Dicas para começar
-                  </h5>
-                  <div class="row text-start">
-                    <div class="col-md-6">
-                      <ul class="list-unstyled">
-                        <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
-                          <small>Tenha em mãos os documentos do veículo</small>
-                        </li>
-                        <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
-                          <small>Prepare uma foto do seu veículo</small>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="col-md-6">
-                      <ul class="list-unstyled">
-                        <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
-                          <small>Anote a quilometragem atual</small>
-                        </li>
-                        <li class="mb-2">
-                          <i class="fas fa-check text-success me-2"></i>
-                          <small>Lembre-se da última manutenção</small>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-          </div>
-        </div>
+      <!-- Empty State -->
+      <div *ngIf="!hasVehicles && !isLoading" class="text-center py-5">
+        <i class="fas fa-car-side fa-6x text-muted mb-4"></i>
+        <h2 class="fw-bold mb-3">Sua garagem está vazia</h2>
+        <p class="text-muted mb-4 lead">Adicione seu primeiro veículo para começar.</p>
+        <button class="btn btn-primary btn-lg" (click)="addFirstVehicle()">
+          <i class="fas fa-plus me-2"></i>Adicionar Primeiro Veículo
+        </button>
       </div>
       
-      <!-- Dashboard with Vehicles - Quando há veículos -->
-      <div *ngIf="hasVehicles && !isLoading" class="vehicles-dashboard">
+      <!-- Dashboard with Vehicles -->
+      <div *ngIf="hasVehicles && !isLoading">
         
         <!-- Quick Stats -->
         <div class="row mb-4">
@@ -245,9 +121,8 @@
                 <i class="fas fa-plus text-info"></i>
               </div>
               <div class="stat-content">
-                <button class="btn btn-outline-primary btn-sm" (click)="addNewVehicle()">
-                  <i class="fas fa-plus me-1"></i>
-                  Novo Veículo
+                <button class="btn btn-primary btn-sm w-100" (click)="addNewVehicle()">
+                  <i class="fas fa-plus me-1"></i>Novo Veículo
                 </button>
               </div>
             </div>
@@ -255,207 +130,99 @@
         </div>
 
         <!-- Vehicle Cards -->
-        <div class="vehicles-section">
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold">Meus Veículos</h3>
-            <button class="btn btn-primary" (click)="addNewVehicle()">
-              <i class="fas fa-plus me-2"></i>
-              Adicionar Veículo
-            </button>
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="fw-bold">Meus Veículos</h3>
+              <button class="btn btn-outline-primary" (click)="addNewVehicle()">
+                <i class="fas fa-plus me-2"></i>Adicionar
+              </button>
+            </div>
           </div>
+        </div>
 
-          <div class="row">
-            <div *ngFor="let vehicle of userVehicles" class="col-lg-6 col-xl-4 mb-4">
-              <div class="vehicle-card">
+        <div class="row">
+          <!-- CORRIGIDO: userVehicles → vehicles -->
+          <div *ngFor="let vehicle of vehicles" class="col-lg-6 col-xl-4 mb-4">
+            <div class="vehicle-card">
+              
+              <!-- Photo -->
+              <div class="vehicle-photo">
+                <img *ngIf="vehicle.photo" [src]="vehicle.photo" [alt]="getVehicleFullName(vehicle)" class="vehicle-image">
+                <div *ngIf="!vehicle.photo" class="vehicle-placeholder">
+                  <i class="fas fa-car fa-3x text-muted"></i>
+                </div>
+              </div>
+
+              <!-- Info -->
+              <div class="vehicle-info">
+                <h5 class="vehicle-title">{{ getVehicleFullName(vehicle) }}</h5>
+                <p class="vehicle-subtitle text-muted">{{ vehicle.color }} • {{ vehicle.licensePlate }}</p>
                 
-                <!-- Vehicle Photo -->
-                <div class="vehicle-photo">
-                  <img *ngIf="vehicle.photo" 
-                       [src]="vehicle.photo" 
-                       [alt]="getVehicleFullName(vehicle)"
-                       class="vehicle-image">
-                  <div *ngIf="!vehicle.photo" class="vehicle-placeholder">
-                    <i class="fas fa-car fa-3x text-muted"></i>
+                <!-- Details -->
+                <div class="vehicle-details mb-3">
+                  <div class="detail-row">
+                    <span class="detail-label">Combustível:</span>
+                    <span class="badge {{ getFuelBadgeClass(vehicle.fuel) }}">
+                      {{ getFuelDisplayName(vehicle.fuel) }}
+                    </span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Transmissão:</span>
+                    <span>{{ getTransmissionDisplayName(vehicle.transmission) }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Quilometragem:</span>
+                    <span>{{ formatMileage(vehicle.mileage) }}</span>
                   </div>
                 </div>
 
-                <!-- Vehicle Info -->
-                <div class="vehicle-info">
-                  <h5 class="vehicle-title">{{ getVehicleFullName(vehicle) }}</h5>
-                  <p class="vehicle-subtitle text-muted">{{ vehicle.color }} • {{ vehicle.licensePlate }}</p>
-                  
-                  <!-- Vehicle Details -->
-                  <div class="vehicle-details">
-                    <div class="detail-row">
-                      <span class="detail-label">Combustível:</span>
-                      <span class="badge {{ getFuelBadgeClass(vehicle.fuel) }}">
-                        {{ getFuelDisplayName(vehicle.fuel) }}
-                      </span>
-                    </div>
-                    <div class="detail-row">
-                      <span class="detail-label">Transmissão:</span>
-                      <span>{{ getTransmissionDisplayName(vehicle.transmission) }}</span>
-                    </div>
-                    <div class="detail-row">
-                      <span class="detail-label">Quilometragem:</span>
-                      <span>{{ formatMileage(vehicle.mileage) }}</span>
-                    </div>
-                    <div class="detail-row">
-                      <span class="detail-label">Portas:</span>
-                      <span>{{ vehicle.doors }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Vehicle Actions -->
-                  <div class="vehicle-actions">
-                    <button class="btn btn-outline-primary btn-sm" 
-                            (click)="viewVehicleDetails(vehicle.id)">
-                      <i class="fas fa-eye me-1"></i>
-                      Ver Detalhes
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" 
-                            (click)="editVehicle(vehicle.id)">
-                      <i class="fas fa-edit me-1"></i>
-                      Editar
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" 
-                            (click)="removeVehicle(vehicle)">
-                      <i class="fas fa-trash me-1"></i>
-                      Remover
-                    </button>
-                  </div>
+                <!-- Actions -->
+                <div class="vehicle-actions">
+                  <button class="btn btn-primary btn-sm me-2" 
+                          (click)="viewVehicleDetails(vehicle.id)"
+                          [disabled]="!vehicle.id">
+                    <i class="fas fa-eye me-1"></i>Ver
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm me-2" 
+                          (click)="editVehicle(vehicle.id)"
+                          [disabled]="!vehicle.id">
+                    <i class="fas fa-edit me-1"></i>Editar
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" 
+                          (click)="removeVehicle(vehicle)"
+                          [disabled]="!vehicle.id">
+                    <i class="fas fa-trash me-1"></i>Remover
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Seção de Status do Sistema de Lembretes (Apenas Informativa) -->
-      <div class="row mt-5" *ngIf="hasVehicles && !isLoading">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header bg-success text-white">
-              <h5 class="mb-0">
-                <i class="fas fa-envelope me-2"></i>
-                Sistema de Lembretes Automáticos
-              </h5>
-            </div>
-            <div class="card-body">
-              <!-- Status do Serviço -->
-              <div class="row">
-                <div class="col-12 mb-3">
-                  <div class="alert alert-success">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong>Sistema Ativo:</strong> Lembretes automáticos funcionando
-                      </div>
-                      <small class="text-muted">
-                        <i class="fas fa-clock me-1"></i>
-                        Verificação a cada hora
-                      </small>
-                    </div>
+        <!-- Email Status (Simplificado) -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="mb-1">
+                      <i class="fas fa-envelope me-2 text-primary"></i>
+                      Sistema de Lembretes
+                    </h6>
+                    <small class="text-muted">{{ getEmailServiceStatus() }}</small>
                   </div>
-                </div>
-              </div>
-              
-              <!-- Informações do Sistema -->
-              <div class="row">
-                <div class="col-12">
-                  <div class="card bg-light">
-                    <div class="card-body">
-                      <h6 class="mb-3">
-                        <i class="fas fa-info-circle text-primary me-2"></i>
-                        Como funcionam os lembretes automáticos:
-                      </h6>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <ul class="mb-0 small">
-                            <li class="mb-2">
-                              <i class="fas fa-envelope text-primary me-2"></i>
-                              <strong>Emails automáticos</strong> para manutenções agendadas
-                            </li>
-                            <li class="mb-2">
-                              <i class="fas fa-calendar text-info me-2"></i>
-                              <strong>Aviso prévio:</strong> Um dia antes da manutenção
-                              
-                            </li>
-                            <li class="mb-2">
-                              <i class="fas fa-clock text-warning me-2"></i>
-                              <strong>Lembrete no dia:</strong> Manhã do dia da manutenção
-                            </li>
-                          </ul>
-                        </div>
-                        <div class="col-md-6">
-                          <ul class="mb-0 small">
-                            <li class="mb-2">
-                              <i class="fas fa-sync text-success me-2"></i>
-                              <strong>Verificação automática</strong> a cada hora
-                            </li>
-                            <li class="mb-2">
-                              <i class="fas fa-shield-alt text-secondary me-2"></i>
-                              <strong>Sem duplicatas:</strong> Apenas um email por dia
-                            </li>
-                            <li class="mb-2">
-                              <i class="fas fa-mobile-alt text-primary me-2"></i>
-                              <strong>Funciona 24/7</strong> automaticamente
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Email do Usuário -->
-              <div class="row mt-3">
-                <div class="col-12">
-                  <div class="alert alert-info">
-                    <small>
-                      <i class="fas fa-envelope me-2"></i>
-                      <strong>Lembretes enviados para:</strong> {{ getUserEmail() || 'Email não configurado' }}
-                      <br>
-                      <i class="fas fa-lightbulb me-2"></i>
-                      <strong>Dica:</strong> Verifique sua caixa de spam caso não receba os emails.
-                    </small>
-                  </div>
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Emails automáticos para manutenções
+                  </small>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-        <!-- Recent Activity -->
-        <div class="recent-activity mt-4">
-          <h4 class="fw-bold mb-3">Atividade Recente</h4>
-          <div class="alert alert-info">
-            <i class="fas fa-info-circle me-2"></i>
-            Seção de atividades recentes será implementada em breve
-          </div>
-        </div>
-      </div>
-      
     </div>
   </main>
-  
-  <!-- Footer -->
-  <footer class="footer mt-auto py-3 bg-light">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-6">
-          <span class="text-muted">© 2025 Minha Garagem. Todos os direitos reservados.</span>
-        </div>
-        <div class="col-md-6 text-end">
-          <small class="text-muted">
-            Versão 1.0.0 | 
-            <a href="#" class="text-decoration-none">Suporte</a> | 
-            <a href="#" class="text-decoration-none">Política de Privacidade</a>
-          </small>
-        </div>
-      </div>
-    </div>
-  </footer>
-  
 </div>
