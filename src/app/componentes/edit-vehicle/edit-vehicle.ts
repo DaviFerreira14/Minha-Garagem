@@ -354,9 +354,6 @@ export class EditVehicle implements OnInit, OnDestroy {
         
         console.log('Veículo atualizado com sucesso:', updatedVehicle);
         
-        // Mostrar mensagem de sucesso
-        this.showSuccessMessage();
-        
         // Aguardar um pouco antes de navegar
         setTimeout(() => {
           this.router.navigate(['/vehicles', this.vehicle!.id]);
@@ -371,11 +368,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     } else {
       this.markFormGroupTouched();
     }
-  }
-
-  // Mostrar mensagem de sucesso
-  private showSuccessMessage(): void {
-    alert('Veículo atualizado com sucesso! Redirecionando...');
   }
 
   // Mostrar mensagem de erro

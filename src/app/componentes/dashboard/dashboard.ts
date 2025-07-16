@@ -1,3 +1,4 @@
+// src/app/componentes/dashboard/dashboard.ts - VERSÃO COMPLETA
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -6,6 +7,8 @@ import { Subscription } from 'rxjs';
 // Serviços
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
+import { NotificationService } from '../../services/notification';
+import { EmailService } from '../../services/email';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,7 +35,9 @@ export class Dashboard implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private vehicleService: VehicleService
+    private vehicleService: VehicleService,
+    private notificationService: NotificationService,
+    private emailService: EmailService
   ) {}
 
   ngOnInit(): void {
@@ -105,6 +110,11 @@ export class Dashboard implements OnInit, OnDestroy {
   // Obter primeiro nome do usuário
   getUserFirstName(): string {
     return this.authService.getUserFirstName();
+  }
+
+  // Obter email do usuário
+  getUserEmail(): string | null {
+    return this.authService.getUserEmail();
   }
 
   // Obter usuário atual
@@ -205,7 +215,25 @@ export class Dashboard implements OnInit, OnDestroy {
     return new Intl.NumberFormat('pt-BR').format(mileage) + ' km';
   }
 
-  // Navegação
+  // MÉTODOS DE NAVEGAÇÃO:
+
+  // Navegação para Manutenções
+  goToMaintenance(): void {
+    console.log('Navegando para manutenções...');
+    this.router.navigate(['/maintenance']).then(success => {
+      if (success) {
+        console.log('Navegação para manutenções bem-sucedida');
+      } else {
+        console.error('Falha na navegação para manutenções');
+        alert('Erro ao navegar para manutenções. Verifique se a rota está configurada.');
+      }
+    }).catch(error => {
+      console.error('Erro na navegação:', error);
+      alert('Erro ao navegar para manutenções.');
+    });
+  }
+
+  // Navegação para outros módulos
   navigateToVehicles(): void {
     console.log('Navegando para veículos...');
     // this.router.navigate(['/vehicles']);
@@ -213,9 +241,8 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   navigateToMaintenance(): void {
-    console.log('Navegando para manutenções...');
-    // this.router.navigate(['/maintenance']);
-    alert('Página de Manutenções será implementada em breve!');
+    // Redirecionar para o método correto
+    this.goToMaintenance();
   }
 
   navigateToExpenses(): void {
@@ -247,7 +274,19 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  // Métodos para estatísticas
+  // MÉTODOS DE EMAIL E NOTIFICAÇÕES:
+
+  // Método para verificar status do serviço de email
+  getEmailServiceStatus(): string {
+    if (!this.emailService.isConfigured()) {
+      return '⚠️ EmailJS não configurado';
+    }
+    
+    const status = this.notificationService.getServiceStatus();
+    return status.isRunning ? '✅ Serviço ativo' : '❌ Serviço inativo';
+  }
+
+  // MÉTODOS PARA ESTATÍSTICAS:
   getTotalVehicles(): number {
     return this.totalVehicles;
   }

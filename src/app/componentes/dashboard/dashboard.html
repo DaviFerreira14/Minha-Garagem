@@ -1,4 +1,4 @@
-<!-- dashboard.html -->
+<!-- src/app/componentes/dashboard/dashboard.html - VERSÃO COMPLETA -->
 <div class="dashboard-container">
   
   <!-- Header/Navbar -->
@@ -16,25 +16,25 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link active" href="#">
+            <a class="nav-link active" href="#" (click)="$event.preventDefault()">
               <i class="fas fa-tachometer-alt me-1"></i>
               Dashboard
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" (click)="navigateToVehicles()">
+            <a class="nav-link" href="#" (click)="$event.preventDefault(); navigateToVehicles()">
               <i class="fas fa-car me-1"></i>
               Veículos
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" (click)="navigateToMaintenance()">
+            <a class="nav-link" href="#" (click)="$event.preventDefault(); goToMaintenance()">
               <i class="fas fa-wrench me-1"></i>
               Manutenções
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" (click)="navigateToExpenses()">
+            <a class="nav-link" href="#" (click)="$event.preventDefault(); navigateToExpenses()">
               <i class="fas fa-chart-line me-1"></i>
               Gastos
             </a>
@@ -330,8 +330,105 @@
           </div>
         </div>
 
-        <!-- Recent Activity (placeholder) -->
-        <div class="recent-activity mt-5">
+        <!-- Seção de Status do Sistema de Lembretes (Apenas Informativa) -->
+      <div class="row mt-5" *ngIf="hasVehicles && !isLoading">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-envelope me-2"></i>
+                Sistema de Lembretes Automáticos
+              </h5>
+            </div>
+            <div class="card-body">
+              <!-- Status do Serviço -->
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <div class="alert alert-success">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Sistema Ativo:</strong> Lembretes automáticos funcionando
+                      </div>
+                      <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>
+                        Verificação a cada hora
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Informações do Sistema -->
+              <div class="row">
+                <div class="col-12">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <h6 class="mb-3">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Como funcionam os lembretes automáticos:
+                      </h6>
+                      <div class="row">
+                        <div class="col-md-6">
+                          <ul class="mb-0 small">
+                            <li class="mb-2">
+                              <i class="fas fa-envelope text-primary me-2"></i>
+                              <strong>Emails automáticos</strong> para manutenções agendadas
+                            </li>
+                            <li class="mb-2">
+                              <i class="fas fa-calendar text-info me-2"></i>
+                              <strong>Aviso prévio:</strong> Um dia antes da manutenção
+                              
+                            </li>
+                            <li class="mb-2">
+                              <i class="fas fa-clock text-warning me-2"></i>
+                              <strong>Lembrete no dia:</strong> Manhã do dia da manutenção
+                            </li>
+                          </ul>
+                        </div>
+                        <div class="col-md-6">
+                          <ul class="mb-0 small">
+                            <li class="mb-2">
+                              <i class="fas fa-sync text-success me-2"></i>
+                              <strong>Verificação automática</strong> a cada hora
+                            </li>
+                            <li class="mb-2">
+                              <i class="fas fa-shield-alt text-secondary me-2"></i>
+                              <strong>Sem duplicatas:</strong> Apenas um email por dia
+                            </li>
+                            <li class="mb-2">
+                              <i class="fas fa-mobile-alt text-primary me-2"></i>
+                              <strong>Funciona 24/7</strong> automaticamente
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Email do Usuário -->
+              <div class="row mt-3">
+                <div class="col-12">
+                  <div class="alert alert-info">
+                    <small>
+                      <i class="fas fa-envelope me-2"></i>
+                      <strong>Lembretes enviados para:</strong> {{ getUserEmail() || 'Email não configurado' }}
+                      <br>
+                      <i class="fas fa-lightbulb me-2"></i>
+                      <strong>Dica:</strong> Verifique sua caixa de spam caso não receba os emails.
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Recent Activity -->
+        <div class="recent-activity mt-4">
           <h4 class="fw-bold mb-3">Atividade Recente</h4>
           <div class="alert alert-info">
             <i class="fas fa-info-circle me-2"></i>

@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface User {
   id: string;
+  uid: string; 
   email: string;
   displayName?: string;
   photoURL?: string;
@@ -35,6 +36,10 @@ export class AuthService {
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
+        // Garantir compatibilidade uid/id
+        if (user && !user.uid) {
+          user.uid = user.id;
+        }
         this.currentUserSubject.next(user);
       } catch (error) {
         console.error('Erro ao carregar usuário do storage:', error);
@@ -62,7 +67,6 @@ export class AuthService {
       }
 
       // Simular validação de credenciais
-      // Aqui você implementaria a lógica real de autenticação
       if (password.length < 6) {
         return {
           success: false,
@@ -71,8 +75,10 @@ export class AuthService {
       }
 
       // Criar usuário (simulação - substitua pela sua lógica)
+      const userId = 'user_' + Date.now();
       const user: User = {
-        id: 'user_' + Date.now(),
+        id: userId,
+        uid: userId, // ← GARANTIR que uid = id
         email: email,
         displayName: email.split('@')[0],
         emailVerified: true
@@ -130,8 +136,10 @@ export class AuthService {
       }
 
       // Criar novo usuário
+      const userId = 'user_' + Date.now();
       const user: User = {
-        id: 'user_' + Date.now(),
+        id: userId,
+        uid: userId, // ← GARANTIR que uid = id
         email: email,
         displayName: displayName || email.split('@')[0],
         emailVerified: false
@@ -156,7 +164,7 @@ export class AuthService {
     }
   }
 
-  // Reset/recuperar senha - método que estava faltando
+  // Reset/recuperar senha
   async resetPassword(email: string): Promise<AuthResult> {
     try {
       if (!email) {
@@ -182,12 +190,8 @@ export class AuthService {
         };
       }
 
-      // Simular envio de email de recuperação
       console.log('Enviando email de recuperação para:', email);
       
-      // Aqui você implementaria o envio real do email
-      // Por exemplo: enviar para API que envia email
-
       return {
         success: true,
         message: 'Email de recuperação enviado com sucesso!'
@@ -218,13 +222,32 @@ export class AuthService {
 
   // Definir usuário atual
   private setCurrentUser(user: User): void {
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    this.currentUserSubject.next(user);
+    // Garantir que o usuário sempre tenha uid
+    const userWithUid = {
+      ...user,
+      uid: user.uid || user.id
+    };
+    localStorage.setItem('currentUser', JSON.stringify(userWithUid));
+    this.currentUserSubject.next(userWithUid);
   }
 
-  // Obter usuário atual
+  // MÉTODO CORRIGIDO: Obter usuário atual
   getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
+    try {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        // Garantir que o usuário tenha uid para compatibilidade
+        if (user && !user.uid) {
+          user.uid = user.id;
+        }
+        return user;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao obter usuário atual:', error);
+      return null;
+    }
   }
 
   // Verificar se está logado
@@ -264,7 +287,7 @@ export class AuthService {
   // Obter ID do usuário
   getUserId(): string | null {
     const user = this.getCurrentUser();
-    return user ? user.id : null;
+    return user ? user.uid : null; // ← USAR uid ao invés de id
   }
 
   // Obter email do usuário
@@ -329,5 +352,17 @@ export class AuthService {
     }
 
     return { score, message };
+  }
+
+  // MÉTODO DE DEBUG (remover em produção)
+  debugCurrentUser(): void {
+    const user = this.getCurrentUser();
+    console.log('Current user debug:', {
+      user: user,
+      hasId: !!user?.id,
+      hasUid: !!user?.uid,
+      id: user?.id,
+      uid: user?.uid
+    });
   }
 }

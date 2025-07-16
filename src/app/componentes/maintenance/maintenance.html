@@ -1,0 +1,345 @@
+<!-- src/app/componentes/maintenance/maintenance.html -->
+<div class="maintenance-container">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand fw-bold" (click)="goToDashboard()">
+        <i class="fas fa-car me-2"></i>
+        Minha Garagem
+      </a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" (click)="goToDashboard()">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active">Manutenções</a>
+          </li>
+        </ul>
+        
+        <div class="navbar-nav">
+          <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle me-1"></i>
+              {{ currentUser?.email }}
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" (click)="logout()">
+                <i class="fas fa-sign-out-alt me-2"></i>Sair
+              </a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+      <div class="col-md-8">
+        <h2 class="mb-0">
+          <i class="fas fa-tools me-2 text-primary"></i>
+          Manutenções
+        </h2>
+        <p class="text-muted mb-0">Gerencie as manutenções dos seus veículos</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <button class="btn btn-primary" (click)="showAddForm = !showAddForm">
+          <i class="fas fa-plus me-2"></i>
+          Nova Manutenção
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4" *ngIf="vehicles.length > 0">
+      <div class="col-md-6">
+        <select class="form-select" [(ngModel)]="selectedVehicleFilter" (change)="filterMaintenances()">
+          <option value="">Todos os veículos</option>
+          <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+            {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})
+          </option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <select class="form-select" [(ngModel)]="selectedTypeFilter" (change)="filterMaintenances()">
+          <option value="">Todos os tipos</option>
+          <option value="realizada">Realizadas</option>
+          <option value="agendada">Agendadas</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Formulário de Adicionar Manutenção -->
+    <div class="row mb-4" *ngIf="showAddForm">
+      <div class="col-12">
+        <div class="card border-primary">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-wrench me-2"></i>
+              Adicionar Nova Manutenção
+            </h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="maintenanceForm" (ngSubmit)="onSubmit()">
+              <div class="row">
+                <!-- Veículo -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Veículo *</label>
+                  <select class="form-select" formControlName="vehicleId" [class.is-invalid]="isFieldInvalid('vehicleId')">
+                    <option value="">Selecione um veículo</option>
+                    <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+                      {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})
+                    </option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('vehicleId')">
+                    Selecione um veículo
+                  </div>
+                </div>
+
+                <!-- Tipo -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Tipo *</label>
+                  <select class="form-select" formControlName="type" [class.is-invalid]="isFieldInvalid('type')">
+                    <option value="">Selecione o tipo</option>
+                    <option value="realizada">Manutenção Realizada</option>
+                    <option value="agendada">Manutenção Agendada</option>
+                  </select>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('type')">
+                    Selecione o tipo de manutenção
+                  </div>
+                </div>
+
+                <!-- Título -->
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Título da Manutenção *</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    formControlName="title"
+                    placeholder="Ex: Revisão de 10.000 km"
+                    [class.is-invalid]="isFieldInvalid('title')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('title')">
+                    Digite um título para a manutenção
+                  </div>
+                </div>
+
+                <!-- Data -->
+                <div class="col-md-6 mb-3">
+  <label class="form-label">Data *</label>
+  <input 
+    type="date" 
+    class="form-control" 
+    formControlName="date"
+    [min]="getMinDate()"
+    [max]="getMaxDate()"
+    [class.is-invalid]="isFieldInvalid('date')"
+    [class.is-valid]="maintenanceForm.get('date')?.valid && maintenanceForm.get('date')?.touched">
+  
+  <!-- Mensagens de erro específicas -->
+  <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
+    {{ getDateErrorMessage() }}
+  </div>
+  
+  <!-- Texto de ajuda -->
+  <div class="form-text" *ngIf="!isFieldInvalid('date') && maintenanceForm.get('type')?.value">
+    <small class="text-muted">
+      <i class="fas fa-info-circle me-1"></i>
+      {{ getDateHelperText() }}
+    </small>
+  </div>
+</div>
+                <!-- Itens da Manutenção -->
+                <div class="col-12 mb-3">
+                  <label class="form-label">Itens da Manutenção</label>
+                  <div formArrayName="items">
+                    <div *ngFor="let item of getItemsControls(); let i = index" 
+                         [formGroupName]="i" 
+                         class="border rounded p-3 mb-2 bg-light">
+                      <div class="row">
+                        <div class="col-md-6 mb-2">
+                          <input 
+                            type="text" 
+                            class="form-control" 
+                            formControlName="description"
+                            placeholder="Ex: Troca de óleo">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                          <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input 
+                              type="number" 
+                              class="form-control" 
+                              formControlName="cost"
+                              placeholder="0,00"
+                              step="0.01">
+                          </div>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                          <button 
+                            type="button" 
+                            class="btn btn-outline-danger w-100"
+                            (click)="removeItem(i)"
+                            [disabled]="getItemsControls().length === 1">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button type="button" class="btn btn-outline-primary btn-sm" (click)="addItem()">
+                    <i class="fas fa-plus me-2"></i>
+                    Adicionar Item
+                  </button>
+                </div>
+
+                <!-- Observações -->
+                <div class="col-12 mb-3">
+                  <label class="form-label">Observações</label>
+                  <textarea 
+                    class="form-control" 
+                    formControlName="notes"
+                    rows="3"
+                    placeholder="Observações adicionais sobre a manutenção..."></textarea>
+                </div>
+
+                <!-- Total -->
+                <div class="col-12 mb-3">
+                  <div class="alert alert-info">
+                    <strong>Total: R$ {{ calculateTotal() | number:'1.2-2' }}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botões -->
+              <div class="row">
+                <div class="col-12">
+                  <button type="button" class="btn btn-secondary me-2" (click)="cancelAdd()">
+                    Cancelar
+                  </button>
+                  <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <i class="fas fa-save me-2" *ngIf="!isLoading"></i>
+                    Salvar Manutenção
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensagens -->
+    <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+
+    <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <!-- Lista de Manutenções -->
+    <div class="row">
+      <div class="col-12">
+        <!-- Loading -->
+        <div class="text-center py-5" *ngIf="isLoadingMaintenances">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+          </div>
+          <p class="mt-2 text-muted">Carregando manutenções...</p>
+        </div>
+
+        <!-- Estado Vazio -->
+        <div class="text-center py-5" *ngIf="!isLoadingMaintenances && filteredMaintenances.length === 0 && !showAddForm">
+          <i class="fas fa-tools fa-4x text-muted mb-3"></i>
+          <h4 class="text-muted">Nenhuma manutenção encontrada</h4>
+          <p class="text-muted mb-4">
+            <span *ngIf="vehicles.length === 0">Primeiro adicione um veículo para registrar manutenções.</span>
+            <span *ngIf="vehicles.length > 0">Adicione sua primeira manutenção para começar o controle.</span>
+          </p>
+          <button class="btn btn-primary" (click)="showAddForm = true" *ngIf="vehicles.length > 0">
+            <i class="fas fa-plus me-2"></i>
+            Adicionar Primeira Manutenção
+          </button>
+          <button class="btn btn-outline-primary" (click)="goToDashboard()" *ngIf="vehicles.length === 0">
+            <i class="fas fa-car me-2"></i>
+            Adicionar Veículo
+          </button>
+        </div>
+
+        <!-- Lista de Manutenções -->
+        <div class="row" *ngIf="!isLoadingMaintenances && filteredMaintenances.length > 0">
+          <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let maintenance of filteredMaintenances">
+            <div class="card h-100 maintenance-card" [class.border-success]="maintenance.type === 'realizada'" [class.border-warning]="maintenance.type === 'agendada'">
+              <div class="card-header d-flex justify-content-between align-items-center" 
+                   [class.bg-success]="maintenance.type === 'realizada'" 
+                   [class.bg-warning]="maintenance.type === 'agendada'"
+                   [class.text-white]="maintenance.type === 'realizada'">
+                <h6 class="mb-0">
+                  <i class="fas fa-wrench me-2"></i>
+                  {{ maintenance.title }}
+                </h6>
+                <span class="badge" 
+                      [class.bg-light]="maintenance.type === 'realizada'"
+                      [class.bg-dark]="maintenance.type === 'agendada'"
+                      [class.text-dark]="maintenance.type === 'realizada'">
+                  {{ maintenance.type === 'realizada' ? 'Realizada' : 'Agendada' }}
+                </span>
+              </div>
+              
+              <div class="card-body">
+                <p class="card-text mb-2">
+                  <strong>{{ maintenance.vehicleName }}</strong>
+                </p>
+                <p class="card-text mb-2">
+                  <i class="fas fa-calendar me-2 text-muted"></i>
+                  {{ maintenance.date | date:'dd/MM/yyyy' }}
+                </p>
+                
+                <!-- Itens -->
+                <div class="mb-3" *ngIf="maintenance.items.length > 0">
+                  <h6 class="mb-2">Itens:</h6>
+                  <ul class="list-unstyled mb-0">
+                    <li *ngFor="let item of maintenance.items" class="small mb-1">
+                      <i class="fas fa-check text-success me-2"></i>
+                      {{ item.description }}
+                      <span class="text-muted float-end">R$ {{ item.cost | number:'1.2-2' }}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- Observações -->
+                <div class="mb-3" *ngIf="maintenance.notes">
+                  <h6 class="mb-2">Observações:</h6>
+                  <p class="small text-muted mb-0">{{ maintenance.notes }}</p>
+                </div>
+              </div>
+              
+              <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                <strong class="text-primary">
+                  Total: R$ {{ maintenance.totalCost | number:'1.2-2' }}
+                </strong>
+                <button class="btn btn-outline-danger btn-sm" (click)="deleteMaintenance(maintenance.id!)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
