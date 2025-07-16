@@ -7,6 +7,7 @@ import { Dashboard } from './componentes/dashboard/dashboard';
 import { AddVehicle } from './componentes/add-vehicle/add-vehicle';
 import { MaintenanceComponent } from './componentes/maintenance/maintenance';
 import { authGuard } from './guards/auth-guard';
+import { ExpensesComponent } from './componentes/expenses/expenses';
 
 export const routes: Routes = [
     {
@@ -40,6 +41,10 @@ export const routes: Routes = [
         path: 'maintenance',
         component: MaintenanceComponent,
         canActivate: [authGuard]
+    },
+    {
+        path: 'expenses',
+        component: ExpensesComponent
     },
     {
         path: '**',

@@ -246,9 +246,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   navigateToExpenses(): void {
-    console.log('Navegando para gastos...');
-    // this.router.navigate(['/expenses']);
-    alert('Página de Gastos será implementada em breve!');
+    this.router.navigate(['/expenses']);
   }
 
   navigateToProfile(): void {
@@ -310,6 +308,8 @@ export class Dashboard implements OnInit, OnDestroy {
   isFirstTimeUser(): boolean {
     return !this.hasVehicles;
   }
+  // No dashboard.component.ts
+
 
   // Obter estatísticas dos veículos
   getVehicleStats() {
