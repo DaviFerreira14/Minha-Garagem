@@ -219,69 +219,75 @@ export class AddVehicle implements OnInit, AfterViewInit {
   }
 
   // Submeter formulário
-  async onSubmit(): Promise<void> {
-    if (this.vehicleForm.valid && !this.isSubmitting) {
-      this.isSubmitting = true;
-      
-      try {
-        const formData = this.vehicleForm.value;
-        const currentUser = this.getCurrentUser();
+ // src/app/pages/vehicle/vehicle.component.ts
+async onSubmit(): Promise<void> {
+  if (this.vehicleForm.valid && !this.isSubmitting) {
+    this.isSubmitting = true;
 
-        // Processar foto se existir
-        let photoBase64 = '';
-        if (this.selectedPhoto) {
-          photoBase64 = await this.vehicleService.processImageFile(this.selectedPhoto);
-        }
+    try {
+      // Aguarda a inicialização do estado de autenticação
+      await this.authService.waitForAuthStateInitialized();  // Garantir que o estado está inicializado
 
-        // Preparar dados do veículo
-        const user = this.getCurrentUser();
-        
-        if (!user?.id) {
-          throw new Error('Usuário não está logado');
-        }
+      // Verifique se o usuário está logado
+      const currentUser = this.authService.getCurrentUser();
+      console.log('Usuário atual:', currentUser);  // Verifique no console os dados do usuário
 
-        const vehicleData: Omit<Vehicle, 'id' | 'createdAt'> = {
-          brand: formData.brand,
-          model: formData.model,
-          year: parseInt(formData.year),
-          licensePlate: formData.licensePlate,
-          color: formData.color,
-          fuel: formData.fuel,
-          mileage: parseInt(formData.mileage),
-          engineSize: formData.engineSize || '',
-          transmission: formData.transmission,
-          doors: parseInt(formData.doors),
-          observations: formData.observations || '',
-          photo: photoBase64,
-          userId: user.id
-        };
-
-        // Salvar veículo usando o serviço
-        const savedVehicle = await this.vehicleService.addVehicle(vehicleData);
-        
-        console.log('Veículo salvo com sucesso:', savedVehicle);
-        
-        // Limpar rascunho após sucesso
-        localStorage.removeItem('vehicleDraft');
-        
-        // Mostrar mensagem de sucesso (opcional)
-        this.showSuccessMessage();
-        
-        // Aguardar um pouco antes de navegar para melhor UX
-        setTimeout(() => {
-          this.router.navigate(['/dashboard']);
-        }, 1000);
-        
-      } catch (error) {
-        console.error('Erro ao salvar veículo:', error);
-        this.showErrorMessage('Erro ao salvar veículo. Tente novamente.');
-      } finally {
-        this.isSubmitting = false;
+      if (!currentUser || !currentUser.uid) {
+        throw new Error('Usuário não está logado');
       }
-    } else {
-      this.markFormGroupTouched();
+
+      const formData = this.vehicleForm.value;
+
+      // Processar foto se existir
+      let photoBase64 = '';
+      if (this.selectedPhoto) {
+        photoBase64 = await this.vehicleService.processImageFile(this.selectedPhoto);
+      }
+
+      // Preparar dados do veículo
+      const vehicleData: Omit<Vehicle, 'id' | 'createdAt'> = {
+        brand: formData.brand,
+        model: formData.model,
+        year: parseInt(formData.year),
+        licensePlate: formData.licensePlate,
+        color: formData.color,
+        fuel: formData.fuel,
+        mileage: parseInt(formData.mileage),
+        engineSize: formData.engineSize || '',
+        transmission: formData.transmission,
+        doors: parseInt(formData.doors),
+        observations: formData.observations || '',
+        photo: photoBase64,
+        userId: currentUser.uid // Garantido que o usuário está logado
+      };
+
+      // Salvar veículo usando o serviço
+      const savedVehicle = await this.vehicleService.addVehicle(vehicleData);
+      console.log('Veículo salvo com sucesso:', savedVehicle);
+
+      // Limpar rascunho após sucesso
+      localStorage.removeItem('vehicleDraft');
+
+      // Mostrar mensagem de sucesso (opcional)
+      this.showSuccessMessage();
+
+      // Aguardar um pouco antes de navegar para melhor UX
+      setTimeout(() => {
+        this.router.navigate(['/dashboard']);
+      }, 1000);
+
+    } catch (error) {
+      console.error('Erro ao salvar veículo:', error);
+      this.showErrorMessage('Erro ao salvar veículo. Tente novamente.');
+    } finally {
+      this.isSubmitting = false;
     }
+  } else {
+    this.markFormGroupTouched();
   }
+}
+
+
 
   // Mostrar mensagem de sucesso
   private showSuccessMessage(): void {

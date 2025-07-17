@@ -1,10 +1,13 @@
-// src/app/componentes/maintenance/maintenance.ts - VERSÃO COMPLETA
+// src/app/componentes/maintenance/maintenance.ts - VERSÃO COMPLETA E CORRIGIDA
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+
+// Adicione/Verifique essas importações para Firebase Firestore
+import { Firestore, doc, getDoc, deleteDoc } from '@angular/fire/firestore'; // <<< Adicionado/Verificado
 
 import { MaintenanceService, Maintenance as MaintenanceModel, MaintenanceItem } from '../../services/maintenance';
 import { VehicleService, Vehicle } from '../../services/vehicle';
@@ -22,13 +25,13 @@ export class MaintenanceComponent implements OnInit {
   maintenances: MaintenanceModel[] = [];
   filteredMaintenances: MaintenanceModel[] = [];
   vehicles: Vehicle[] = [];
-  
+
   showAddForm: boolean = false;
   isLoading: boolean = false;
   isLoadingMaintenances: boolean = true;
   successMessage: string = '';
   errorMessage: string = '';
-  
+
   selectedVehicleFilter: string = '';
   selectedTypeFilter: string = '';
 
@@ -40,7 +43,8 @@ export class MaintenanceComponent implements OnInit {
     private router: Router,
     private maintenanceService: MaintenanceService,
     private vehicleService: VehicleService,
-    private authService: AuthService
+    private authService: AuthService,
+    private firestore: Firestore // <<< VERIFIQUE SE O FIRESTORE ESTÁ INJETADO AQUI
   ) {}
 
   ngOnInit(): void {
@@ -79,7 +83,7 @@ export class MaintenanceComponent implements OnInit {
   // Novo método para reagir à mudança do tipo de manutenção
   onMaintenanceTypeChange(type: string): void {
     const dateControl = this.maintenanceForm.get('date');
-    
+
     if (type === 'agendada') {
       // Se é agendada, limpar data se for passada
       const currentDate = dateControl?.value;
@@ -87,7 +91,7 @@ export class MaintenanceComponent implements OnInit {
         dateControl?.setValue('');
         this.showTemporaryMessage('Para manutenções agendadas, selecione uma data atual ou futura', 'warning');
       }
-      
+
       // Sugestão: próxima semana se não tiver data
       if (!currentDate) {
         const nextWeek = new Date();
@@ -101,7 +105,7 @@ export class MaintenanceComponent implements OnInit {
         this.showTemporaryMessage('Sugestão: Use a data de hoje se foi realizada recentemente', 'info');
       }
     }
-    
+
     // Revalidar o campo data
     dateControl?.updateValueAndValidity();
   }
@@ -110,7 +114,7 @@ export class MaintenanceComponent implements OnInit {
   dateValidator(control: any): { [key: string]: any } | null {
     const type = this.maintenanceForm?.get('type')?.value;
     const selectedDate = control.value;
-    
+
     if (!selectedDate || !type) {
       return null; // Deixa a validação required cuidar de campos vazios
     }
@@ -139,53 +143,53 @@ export class MaintenanceComponent implements OnInit {
   isDateValid(fieldName: string): boolean {
     const field = this.maintenanceForm.get(fieldName);
     const type = this.maintenanceForm.get('type')?.value;
-    
+
     if (!field || !type) return true;
-    
+
     const hasError = field.invalid && (field.dirty || field.touched);
     const hasPastDateError = field.errors?.['pastDate'];
-    
+
     return !hasError && !hasPastDateError;
   }
 
   // Método para obter mensagem de erro da data
   getDateErrorMessage(): string {
     const dateControl = this.maintenanceForm.get('date');
-    
+
     if (!dateControl || !dateControl.errors) return '';
-    
+
     if (dateControl.errors['required']) {
       return 'Selecione uma data';
     }
-    
+
     if (dateControl.errors['pastDate']) {
       return 'Manutenções agendadas não podem ser marcadas para datas passadas';
     }
-    
+
     return '';
   }
 
   // Método para verificar se a data está próxima (para avisos)
   isDateSoon(dateString: string): boolean {
     if (!dateString) return false;
-    
+
     const selectedDate = new Date(dateString);
     const today = new Date();
     const diffTime = selectedDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays >= 0 && diffDays <= 7; // Próximos 7 dias
   }
 
   // Método para verificar se a data é muito no futuro
   isDateTooFar(dateString: string): boolean {
     if (!dateString) return false;
-    
+
     const selectedDate = new Date(dateString);
     const today = new Date();
     const diffTime = selectedDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays > 365; // Mais de 1 ano no futuro
   }
 
@@ -193,7 +197,7 @@ export class MaintenanceComponent implements OnInit {
   getDateHelperText(): string {
     const type = this.maintenanceForm.get('type')?.value;
     const date = this.maintenanceForm.get('date')?.value;
-    
+
     switch (type) {
       case 'agendada':
         if (date) {
@@ -237,19 +241,19 @@ export class MaintenanceComponent implements OnInit {
   validateMaintenanceDate(): boolean {
     const type = this.maintenanceForm.get('type')?.value;
     const date = this.maintenanceForm.get('date')?.value;
-    
+
     if (!type || !date) return false;
-    
+
     if (type === 'agendada' && date < this.minDate) {
       this.errorMessage = 'Manutenções agendadas não podem ser marcadas para datas passadas';
       return false;
     }
-    
+
     if (type === 'agendada' && this.isDateTooFar(date)) {
       const confirm = window.confirm('A data selecionada é muito distante. Deseja continuar mesmo assim?');
       if (!confirm) return false;
     }
-    
+
     return true;
   }
 
@@ -321,97 +325,98 @@ export class MaintenanceComponent implements OnInit {
     this.filteredMaintenances = filtered;
   }
 
- // CORREÇÃO NO maintenance.component.ts
-// Substitua o método onSubmit existente por esta versão corrigida:
+  // SEU CÓDIGO CORRIGIDO PARA O SUBMIT (QUE VOCÊ JÁ TINHA ME MANDADO)
+  async onSubmit(): Promise<void> {
+    if (this.maintenanceForm.valid && this.validateMaintenanceDate()) {
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
 
-async onSubmit(): Promise<void> {
-  if (this.maintenanceForm.valid && this.validateMaintenanceDate()) {
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+      try {
+        const formValue = this.maintenanceForm.value;
 
-    try {
-      const formValue = this.maintenanceForm.value;
-      
-      // Encontrar o veículo selecionado
-      const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
-      if (!selectedVehicle) {
-        this.errorMessage = 'Veículo não encontrado';
+        // Encontrar o veículo selecionado
+        const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
+        if (!selectedVehicle) {
+          this.errorMessage = 'Veículo não encontrado';
+          this.isLoading = false;
+          return;
+        }
+
+        // Filtrar itens válidos (com descrição)
+        const validItems: MaintenanceItem[] = formValue.items
+          .filter((item: any) => item.description && item.description.trim())
+          .map((item: any) => ({
+            description: item.description.trim(),
+            cost: Number(item.cost) || 0
+          }));
+
+        if (validItems.length === 0) {
+          this.errorMessage = 'Adicione pelo menos um item válido';
+          this.isLoading = false;
+          return;
+        }
+
+        // Calcular total
+        const totalCost = validItems.reduce((sum, item) => sum + item.cost, 0);
+
+        // CORREÇÃO DE FUSO HORÁRIO: Criar data correta sem conversão UTC
+        const dateInput = formValue.date; // String no formato YYYY-MM-DD
+        const [year, month, day] = dateInput.split('-').map(Number);
+
+        // Criar data no fuso horário local (evitar conversão UTC)
+        const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0); // 12h para evitar problemas de DST
+
+        console.log('Data original do formulário:', dateInput);
+        console.log('Data corrigida para salvar:', correctDate);
+
+        // Criar objeto de manutenção
+        const maintenance: Omit<MaintenanceModel, 'id' | 'userId' | 'createdAt'> = {
+          vehicleId: formValue.vehicleId,
+          vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
+          type: formValue.type,
+          date: correctDate, // ← USANDO A DATA CORRIGIDA
+          title: formValue.title.trim(),
+          items: validItems,
+          totalCost: totalCost,
+          notes: formValue.notes?.trim() || ''
+        };
+
+        // Salvar no Firebase
+        const result = await this.maintenanceService.addMaintenance(maintenance);
+
+        if (result.success) {
+          this.successMessage = result.message;
+          this.resetForm();
+          this.showAddForm = false;
+          await this.loadMaintenances(); // Recarregar lista
+        } else {
+          this.errorMessage = result.message;
+        }
+      } catch (error) {
+        console.error('Erro ao salvar manutenção:', error);
+        this.errorMessage = 'Erro inesperado ao salvar manutenção';
+      } finally {
         this.isLoading = false;
-        return;
       }
-
-      // Filtrar itens válidos (com descrição)
-      const validItems: MaintenanceItem[] = formValue.items
-        .filter((item: any) => item.description && item.description.trim())
-        .map((item: any) => ({
-          description: item.description.trim(),
-          cost: Number(item.cost) || 0
-        }));
-
-      if (validItems.length === 0) {
-        this.errorMessage = 'Adicione pelo menos um item válido';
-        this.isLoading = false;
-        return;
-      }
-
-      // Calcular total
-      const totalCost = validItems.reduce((sum, item) => sum + item.cost, 0);
-
-      // CORREÇÃO DE FUSO HORÁRIO: Criar data correta sem conversão UTC
-      const dateInput = formValue.date; // String no formato YYYY-MM-DD
-      const [year, month, day] = dateInput.split('-').map(Number);
-      
-      // Criar data no fuso horário local (evitar conversão UTC)
-      const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0); // 12h para evitar problemas de DST
-      
-      console.log('Data original do formulário:', dateInput);
-      console.log('Data corrigida para salvar:', correctDate);
-
-      // Criar objeto de manutenção
-      const maintenance: Omit<MaintenanceModel, 'id' | 'userId' | 'createdAt'> = {
-        vehicleId: formValue.vehicleId,
-        vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
-        type: formValue.type,
-        date: correctDate, // ← USANDO A DATA CORRIGIDA
-        title: formValue.title.trim(),
-        items: validItems,
-        totalCost: totalCost,
-        notes: formValue.notes?.trim() || ''
-      };
-
-      // Salvar no Firebase
-      const result = await this.maintenanceService.addMaintenance(maintenance);
-
-      if (result.success) {
-        this.successMessage = result.message;
-        this.resetForm();
-        this.showAddForm = false;
-        await this.loadMaintenances(); // Recarregar lista
-      } else {
-        this.errorMessage = result.message;
-      }
-    } catch (error) {
-      console.error('Erro ao salvar manutenção:', error);
-      this.errorMessage = 'Erro inesperado ao salvar manutenção';
-    } finally {
-      this.isLoading = false;
-    }
-  } else {
-    this.markFormGroupTouched(this.maintenanceForm);
-    if (!this.validateMaintenanceDate()) {
-      // A mensagem de erro já foi definida no validateMaintenanceDate
     } else {
-      this.errorMessage = 'Por favor, corrija os erros no formulário';
+      this.markFormGroupTouched(this.maintenanceForm);
+      if (!this.validateMaintenanceDate()) {
+        // A mensagem de erro já foi definida no validateMaintenanceDate
+      } else {
+        this.errorMessage = 'Por favor, corrija os erros no formulário';
+      }
     }
   }
-}
+
 
   async deleteMaintenance(maintenanceId: string): Promise<void> {
     if (confirm('Tem certeza que deseja excluir esta manutenção?')) {
       try {
+        // Agora o método deleteMaintenance do seu serviço já inclui a verificação de permissão.
+        // É melhor usar o serviço para manter a lógica de negócio encapsulada.
         const result = await this.maintenanceService.deleteMaintenance(maintenanceId);
-        
+
         if (result.success) {
           this.successMessage = result.message;
           await this.loadMaintenances(); // Recarregar lista
@@ -445,7 +450,7 @@ async onSubmit(): Promise<void> {
       if (control instanceof FormGroup) {
         this.markFormGroupTouched(control);
       }
-      
+
       if (control instanceof FormArray) {
         control.controls.forEach(arrayControl => {
           if (arrayControl instanceof FormGroup) {
@@ -458,13 +463,13 @@ async onSubmit(): Promise<void> {
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.maintenanceForm.get(fieldName);
-    
+
     if (fieldName === 'date') {
       const hasBasicError = !!(field && field.invalid && (field.dirty || field.touched));
       const hasPastDateError = !!(field?.errors?.['pastDate']);
       return hasBasicError || hasPastDateError;
     }
-    
+
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 

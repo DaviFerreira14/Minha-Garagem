@@ -1,17 +1,36 @@
-import { Injectable } from '@angular/core';
+// src/app/services/auth.ts - VERSÃO COMPLETA E CORRIGIDA
+import { Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, from } from 'rxjs';
+import { filter, take, tap } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
+import {
+  Auth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
+  User as FirebaseUser,
+  GoogleAuthProvider,
+  signInWithPopup
+} from '@angular/fire/auth';
+import {
+  Firestore,
+  doc,
+  setDoc,
+  getDoc
+} from '@angular/fire/firestore';
 
 export interface User {
-  id: string;
-  uid: string; 
+  uid: string;
   email: string;
   displayName?: string;
   photoURL?: string;
   emailVerified?: boolean;
 }
 
-// Interface para resultado de operações de auth
 export interface AuthResult {
   success: boolean;
   message: string;
@@ -21,310 +40,237 @@ export interface AuthResult {
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class AuthService implements OnInit {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private router: Router) {
-    // Verificar se há usuário logado no localStorage
-    this.checkStoredUser();
+  // Adiciona um BehaviorSubject para indicar se o estado de autenticação foi inicializado
+  private authStateInitializedSubject = new BehaviorSubject<boolean>(false);
+  public authStateInitialized$ = this.authStateInitializedSubject.asObservable();
+
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore,
+    private router: Router
+  ) {
+    // A inicialização do listener foi movida para ngOnInit
   }
 
-  // Verificar usuário armazenado
-  private checkStoredUser(): void {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        // Garantir compatibilidade uid/id
-        if (user && !user.uid) {
-          user.uid = user.id;
-        }
+  ngOnInit(): void {
+    // Chame o listener de estado de autenticação aqui, após a injeção completa
+    this.initAuthStateListener();
+  }
+
+  // 🔄 Listener do Firebase Auth para manter usuário logado
+  private initAuthStateListener() {
+    onAuthStateChanged(this.auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const docRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+        const docSnap = await getDoc(docRef);
+
+        const userData = docSnap.exists() ? docSnap.data() : {};
+
+        const user: User = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: userData['displayName'] || firebaseUser.displayName || '',
+          photoURL: firebaseUser.photoURL || '',
+          emailVerified: firebaseUser.emailVerified
+        };
+
         this.currentUserSubject.next(user);
-      } catch (error) {
-        console.error('Erro ao carregar usuário do storage:', error);
-        localStorage.removeItem('currentUser');
+      } else {
+        this.currentUserSubject.next(null);
       }
-    }
+      // Indica que o estado inicial de autenticação foi processado
+      // Isso deve ser chamado APÓS o processamento do firebaseUser ou null.
+      if (!this.authStateInitializedSubject.value) {
+        this.authStateInitializedSubject.next(true);
+      }
+    });
   }
 
-  // Fazer login - versão compatível com seus componentes
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getCurrentUser();
+  }
+
+  // Novo método para aguardar a inicialização do estado de autenticação
+  async waitForAuthStateInitialized(): Promise<void> {
+    if (this.authStateInitializedSubject.value) {
+      return; // Já inicializado, retorna imediatamente
+    }
+    // Aguarda a primeira emissão de 'true' do authStateInitialized$
+    await firstValueFrom(this.authStateInitializedSubject);
+  }
+
   async login(email: string, password: string): Promise<AuthResult> {
     try {
-      // Validações básicas
-      if (!email || !password) {
-        return {
-          success: false,
-          message: 'Email e senha são obrigatórios'
-        };
-      }
+      const credential = await signInWithEmailAndPassword(this.auth, email, password);
+      const firebaseUser = credential.user;
 
-      if (!this.isValidEmail(email)) {
-        return {
-          success: false,
-          message: 'Email inválido'
-        };
-      }
-
-      // Simular validação de credenciais
-      if (password.length < 6) {
-        return {
-          success: false,
-          message: 'Senha deve ter pelo menos 6 caracteres'
-        };
-      }
-
-      // Criar usuário (simulação - substitua pela sua lógica)
-      const userId = 'user_' + Date.now();
-      const user: User = {
-        id: userId,
-        uid: userId, // ← GARANTIR que uid = id
-        email: email,
-        displayName: email.split('@')[0],
-        emailVerified: true
+      // Garantir que o documento do usuário exista no Firestore ao fazer login
+      const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+      const userToSave: User = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        displayName: firebaseUser.displayName || '',
+        photoURL: firebaseUser.photoURL || '',
+        emailVerified: firebaseUser.emailVerified
       };
+      await setDoc(userRef, userToSave, { merge: true });
 
-      this.setCurrentUser(user);
+      // Garante que o BehaviorSubject seja atualizado imediatamente após o login bem-sucedido
+      this.currentUserSubject.next(userToSave);
 
       return {
         success: true,
         message: 'Login realizado com sucesso!',
-        user: user
+        user: userToSave
       };
-
-    } catch (error) {
-      console.error('Erro no login:', error);
+    } catch (error: any) {
+      this.currentUserSubject.next(null); // Em caso de erro, define como não logado
       return {
         success: false,
-        message: 'Erro interno. Tente novamente.'
+        message: this.getFirebaseErrorMessage(error)
       };
     }
   }
 
-  // Fazer registro - versão compatível com seus componentes
-  async register(email: string, password: string, displayName?: string): Promise<AuthResult> {
+  async loginWithGoogle(): Promise<AuthResult> {
     try {
-      // Validações básicas
-      if (!email || !password) {
-        return {
-          success: false,
-          message: 'Email e senha são obrigatórios'
-        };
-      }
+      const provider = new GoogleAuthProvider();
+      const credential = await signInWithPopup(this.auth, provider);
+      const firebaseUser = credential.user;
 
-      if (!this.isValidEmail(email)) {
-        return {
-          success: false,
-          message: 'Email inválido'
-        };
-      }
-
-      if (password.length < 6) {
-        return {
-          success: false,
-          message: 'Senha deve ter pelo menos 6 caracteres'
-        };
-      }
-
-      // Verificar se email já existe (simulação)
-      const existingUser = localStorage.getItem(`user_${email}`);
-      if (existingUser) {
-        return {
-          success: false,
-          message: 'Este email já está cadastrado'
-        };
-      }
-
-      // Criar novo usuário
-      const userId = 'user_' + Date.now();
       const user: User = {
-        id: userId,
-        uid: userId, // ← GARANTIR que uid = id
-        email: email,
-        displayName: displayName || email.split('@')[0],
-        emailVerified: false
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        displayName: firebaseUser.displayName || '',
+        photoURL: firebaseUser.photoURL || '',
+        emailVerified: firebaseUser.emailVerified
       };
 
-      // Salvar usuário (simulação)
-      localStorage.setItem(`user_${email}`, JSON.stringify(user));
-      this.setCurrentUser(user);
+      // Salvar/Atualizar no Firestore
+      const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+      await setDoc(userRef, user, { merge: true }); // Usar merge: true para não sobrescrever dados existentes
+
+      this.currentUserSubject.next(user); // Atualiza o BehaviorSubject
+
+      return {
+        success: true,
+        message: 'Login com Google realizado com sucesso!',
+        user
+      };
+    } catch (error: any) {
+      this.currentUserSubject.next(null); // Em caso de erro, define como não logado
+      return {
+        success: false,
+        message: this.getFirebaseErrorMessage(error)
+      };
+    }
+  }
+
+  async register(email: string, password: string, displayName?: string): Promise<AuthResult> {
+    try {
+      const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+      const firebaseUser = credential.user;
+
+      if (displayName) {
+        await updateProfile(firebaseUser, { displayName });
+      }
+
+      const user: User = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        displayName: displayName || firebaseUser.displayName || '', // Prioriza o displayName fornecido
+        photoURL: firebaseUser.photoURL || '',
+        emailVerified: firebaseUser.emailVerified
+      };
+
+      // Salvar no Firestore
+      const userRef = doc(this.firestore, `users/${firebaseUser.uid}`);
+      await setDoc(userRef, user);
+
+      this.currentUserSubject.next(user); // Atualiza o BehaviorSubject
 
       return {
         success: true,
         message: 'Cadastro realizado com sucesso!',
-        user: user
+        user
       };
-
-    } catch (error) {
-      console.error('Erro no registro:', error);
+    } catch (error: any) {
+      this.currentUserSubject.next(null); // Em caso de erro, define como não logado
       return {
         success: false,
-        message: 'Erro interno. Tente novamente.'
+        message: this.getFirebaseErrorMessage(error)
       };
     }
   }
 
-  // Reset/recuperar senha
+  async logout(): Promise<void> {
+    await signOut(this.auth);
+    this.currentUserSubject.next(null);
+    this.router.navigate(['/login']);
+  }
+
   async resetPassword(email: string): Promise<AuthResult> {
     try {
-      if (!email) {
-        return {
-          success: false,
-          message: 'Email é obrigatório'
-        };
-      }
-
-      if (!this.isValidEmail(email)) {
-        return {
-          success: false,
-          message: 'Email inválido'
-        };
-      }
-
-      // Verificar se email existe (simulação)
-      const existingUser = localStorage.getItem(`user_${email}`);
-      if (!existingUser) {
-        return {
-          success: false,
-          message: 'Email não encontrado'
-        };
-      }
-
-      console.log('Enviando email de recuperação para:', email);
-      
+      await sendPasswordResetEmail(this.auth, email);
       return {
         success: true,
         message: 'Email de recuperação enviado com sucesso!'
       };
-
-    } catch (error) {
-      console.error('Erro ao enviar email de recuperação:', error);
+    } catch (error: any) {
       return {
         success: false,
-        message: 'Erro ao enviar email. Tente novamente.'
+        message: this.getFirebaseErrorMessage(error)
       };
     }
   }
 
-  // Método para recuperar senha (alias para resetPassword)
   async forgotPassword(email: string): Promise<void> {
     const result = await this.resetPassword(email);
-    if (!result.success) {
-      throw new Error(result.message);
-    }
+    if (!result.success) throw new Error(result.message);
   }
 
-  // Validar formato de email
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  // Definir usuário atual
-  private setCurrentUser(user: User): void {
-    // Garantir que o usuário sempre tenha uid
-    const userWithUid = {
-      ...user,
-      uid: user.uid || user.id
-    };
-    localStorage.setItem('currentUser', JSON.stringify(userWithUid));
-    this.currentUserSubject.next(userWithUid);
-  }
-
-  // MÉTODO CORRIGIDO: Obter usuário atual
-  getCurrentUser(): User | null {
-    try {
-      const storedUser = localStorage.getItem('currentUser');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        // Garantir que o usuário tenha uid para compatibilidade
-        if (user && !user.uid) {
-          user.uid = user.id;
-        }
-        return user;
-      }
-      return null;
-    } catch (error) {
-      console.error('Erro ao obter usuário atual:', error);
-      return null;
-    }
-  }
-
-  // Verificar se está logado
-  isLoggedIn(): boolean {
-    return this.currentUserSubject.value !== null;
-  }
-
-  // Fazer logout
-  async logout(): Promise<void> {
-    try {
-      localStorage.removeItem('currentUser');
-      this.currentUserSubject.next(null);
-      this.router.navigate(['/login']);
-    } catch (error) {
-      console.error('Erro no logout:', error);
-      throw error;
-    }
-  }
-
-  // Atualizar perfil
   async updateProfile(updates: Partial<User>): Promise<User> {
-    try {
-      const currentUser = this.getCurrentUser();
-      if (!currentUser) {
-        throw new Error('Usuário não está logado');
-      }
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) throw new Error('Usuário não está logado');
 
-      const updatedUser = { ...currentUser, ...updates };
-      this.setCurrentUser(updatedUser);
-      return updatedUser;
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      throw error;
-    }
+    const userRef = doc(this.firestore, `users/${currentUser.uid}`);
+    const updatedUser = { ...currentUser, ...updates };
+
+    await setDoc(userRef, updatedUser, { merge: true });
+
+    this.currentUserSubject.next(updatedUser);
+    return updatedUser;
   }
 
-  // Obter ID do usuário
+  // Métodos que estavam faltando e causando os erros:
   getUserId(): string | null {
-    const user = this.getCurrentUser();
-    return user ? user.uid : null; // ← USAR uid ao invés de id
+    return this.currentUserSubject.value?.uid || null;
   }
 
-  // Obter email do usuário
   getUserEmail(): string | null {
-    const user = this.getCurrentUser();
-    return user ? user.email : null;
+    return this.currentUserSubject.value?.email || null;
   }
 
-  // Obter nome de exibição
   getUserDisplayName(): string {
-    const user = this.getCurrentUser();
-    if (user?.displayName) {
-      return user.displayName;
-    }
-    if (user?.email) {
-      return user.email.split('@')[0];
-    }
-    return 'Usuário';
+    const user = this.currentUserSubject.value;
+    return user?.displayName || user?.email?.split('@')[0] || 'Usuário';
   }
 
-  // Obter primeiro nome
   getUserFirstName(): string {
-    const user = this.getCurrentUser();
-    if (user?.displayName) {
-      return user.displayName.split(' ')[0];
-    }
-    if (user?.email) {
-      const emailName = user.email.split('@')[0];
-      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-    }
-    return 'Usuário';
+    const name = this.getUserDisplayName();
+    return name.split(' ')[0] || 'Usuário';
   }
 
-  // Método para verificar força da senha
   checkPasswordStrength(password: string): { score: number; message: string } {
     let score = 0;
-    let message = '';
 
     if (password.length >= 8) score++;
     if (/[a-z]/.test(password)) score++;
@@ -332,37 +278,36 @@ export class AuthService {
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
 
+    let message = '';
     switch (score) {
       case 0:
-      case 1:
-        message = 'Senha muito fraca';
-        break;
-      case 2:
-        message = 'Senha fraca';
-        break;
-      case 3:
-        message = 'Senha média';
-        break;
-      case 4:
-        message = 'Senha forte';
-        break;
-      case 5:
-        message = 'Senha muito forte';
-        break;
+      case 1: message = 'Senha muito fraca'; break;
+      case 2: message = 'Senha fraca'; break;
+      case 3: message = 'Senha média'; break;
+      case 4: message = 'Senha forte'; break;
+      case 5: message = 'Senha muito forte'; break;
     }
 
     return { score, message };
   }
 
-  // MÉTODO DE DEBUG (remover em produção)
   debugCurrentUser(): void {
-    const user = this.getCurrentUser();
-    console.log('Current user debug:', {
-      user: user,
-      hasId: !!user?.id,
-      hasUid: !!user?.uid,
-      id: user?.id,
-      uid: user?.uid
-    });
+    console.log('Usuário atual:', this.getCurrentUser());
+  }
+
+  private getFirebaseErrorMessage(error: any): string {
+    const code = error.code;
+
+    const errorMessages: { [key: string]: string } = {
+      'auth/email-already-in-use': 'Este email já está em uso.',
+      'auth/invalid-email': 'Email inválido.',
+      'auth/user-not-found': 'Usuário não encontrado.',
+      'auth/wrong-password': 'Senha incorreta.',
+      'auth/weak-password': 'Senha muito fraca.',
+      'auth/missing-password': 'Senha é obrigatória.',
+      'auth/network-request-failed': 'Erro de rede. Verifique sua conexão.'
+    };
+
+    return errorMessages[code] || 'Erro desconhecido. Tente novamente.';
   }
 }

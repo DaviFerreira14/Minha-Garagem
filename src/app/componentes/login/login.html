@@ -101,6 +101,15 @@
               <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
               <span>{{ isLoading ? 'Entrando...' : 'Entrar' }}</span>
             </button>
+
+            <button 
+              type="button" 
+              class="btn btn-danger w-100 mb-3 py-2"
+              (click)="onGoogleLogin()"
+              [disabled]="isLoading">
+              <i class="fab fa-google me-2"></i>
+              <span>Entrar com Google</span>
+            </button>
             
             <div class="divider-container text-center mb-3">
               <span class="divider-text">ou</span>

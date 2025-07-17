@@ -67,9 +67,6 @@ export class Login implements OnInit {
         
         if (result.success) {
           console.log('Login successful, redirecting...');
-          if (rememberMe) {
-            localStorage.setItem('rememberUser', 'true');
-          }
           this.router.navigate(['/dashboard']);
         } else {
           console.log('Login failed:', result.message);
@@ -84,6 +81,24 @@ export class Login implements OnInit {
     } else {
       console.log('Form is invalid');
       this.markFormGroupTouched(this.loginForm);
+    }
+  }
+
+  async onGoogleLogin(): Promise<void> {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    try {
+      const result = await this.authService.loginWithGoogle();
+      if (result.success) {
+        this.router.navigate(['/dashboard']);
+      } else {
+        this.errorMessage = result.message;
+      }
+    } catch (error) {
+      this.errorMessage = 'Erro inesperado. Tente novamente.';
+    } finally {
+      this.isLoading = false;
     }
   }
 
