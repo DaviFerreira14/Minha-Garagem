@@ -81,14 +81,13 @@
             </div>
           </div>
           <div class="col-md-3 col-sm-6 mb-3">
-            <div class="stat-card">
-              <div class="stat-icon">
-                <i class="fas fa-plus text-info"></i>
+            <div class="stat-card add-vehicle-card" (click)="addNewVehicle()">
+              <div class="stat-icon add-vehicle-icon">
+                <i class="fas fa-plus text-primary"></i>
               </div>
               <div class="stat-content">
-                <button class="btn btn-primary btn-sm w-100" (click)="addNewVehicle()">
-                  <i class="fas fa-plus me-1"></i>Novo Veículo
-                </button>
+                <h3>Novo Veículo</h3>
+                <p>Clique para adicionar</p>
               </div>
             </div>
           </div>
@@ -97,12 +96,7 @@
         <!-- Vehicle Cards -->
         <div class="row mb-4">
           <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h3 class="fw-bold section-title">Meus Veículos</h3>
-              <button class="btn btn-outline-primary" (click)="addNewVehicle()">
-                <i class="fas fa-plus me-2"></i>Adicionar
-              </button>
-            </div>
+            <h3 class="fw-bold section-title mb-3">Meus Veículos</h3>
           </div>
         </div>
 
@@ -163,31 +157,43 @@
             </div>
           </div>
         </div>
-
-        <!-- Email Status -->
-        <div class="row mt-4">
-          <div class="col-12">
-            <div class="info-card">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 class="mb-1">
-                    <i class="fas fa-envelope me-2 text-primary"></i>
-                    Sistema de Lembretes
-                  </h6>
-                  <small class="text-muted">{{ getEmailServiceStatus() }}</small>
-                </div>
-                <small class="text-muted">
-                  <i class="fas fa-info-circle me-1"></i>
-                  Emails automáticos para manutenções
-                </small>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </main>
 
   <!-- Footer Component -->
   <app-footer></app-footer>
+
+  <!-- Modal de Confirmação -->
+  <div *ngIf="showDeleteModal" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+          Confirmar Exclusão
+        </h4>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir o veículo:</p>
+        <div class="vehicle-info-modal" *ngIf="vehicleToDelete">
+          <strong>{{ getVehicleFullName(vehicleToDelete) }}</strong><br>
+          <small class="text-muted">{{ vehicleToDelete.color }} • {{ vehicleToDelete.licensePlate }}</small>
+        </div>
+        <p class="warning-text">
+          <i class="fas fa-info-circle me-1"></i>
+          Esta ação não pode ser desfeita.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          <span *ngIf="isDeleting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!isDeleting" class="fas fa-trash me-1"></i>
+          {{ isDeleting ? 'Removendo...' : 'Confirmar Exclusão' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

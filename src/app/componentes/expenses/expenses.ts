@@ -8,11 +8,12 @@ import { firstValueFrom } from 'rxjs';
 import { ExpenseService, Expense, ExpenseCategory, ExpenseSummary } from '../../services/expense';
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
+import { NavbarComponent } from "../navbar/navbar";
 
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent],
   templateUrl: './expenses.html',
   styleUrls: ['./expenses.css']
 })

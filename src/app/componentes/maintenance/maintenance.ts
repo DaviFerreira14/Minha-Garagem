@@ -12,11 +12,12 @@ import { Firestore, doc, getDoc, deleteDoc } from '@angular/fire/firestore'; // 
 import { MaintenanceService, Maintenance as MaintenanceModel, MaintenanceItem } from '../../services/maintenance';
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
+import { NavbarComponent } from "../navbar/navbar";
 
 @Component({
   selector: 'app-maintenance',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent],
   templateUrl: './maintenance.html',
   styleUrls: ['./maintenance.css']
 })

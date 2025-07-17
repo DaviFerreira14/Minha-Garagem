@@ -1,44 +1,9 @@
 <!-- src/app/componentes/maintenance/maintenance.html -->
 <div class="maintenance-container">
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <a class="navbar-brand fw-bold" (click)="goToDashboard()">
-        <i class="fas fa-car me-2"></i>
-        Minha Garagem
-      </a>
-      
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto">
-          <li class="nav-item">
-            <a class="nav-link" (click)="goToDashboard()">Dashboard</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active">Manutenções</a>
-          </li>
-        </ul>
-        
-        <div class="navbar-nav">
-          <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-              <i class="fas fa-user-circle me-1"></i>
-              {{ currentUser?.email }}
-            </a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" (click)="logout()">
-                <i class="fas fa-sign-out-alt me-2"></i>Sair
-              </a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </nav>
-
+ 
+    <!-- Navbar Component -->
+  <app-navbar></app-navbar>
+  
   <!-- Conteúdo Principal -->
   <div class="container mt-4">
     <!-- Header -->
