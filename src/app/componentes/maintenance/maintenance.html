@@ -1,22 +1,22 @@
-<!-- src/app/componentes/maintenance/maintenance.html -->
+<!-- maintenance.component.html -->
 <div class="maintenance-container">
- 
-    <!-- Navbar Component -->
+  
+  <!-- Navbar Component -->
   <app-navbar></app-navbar>
   
   <!-- Conteúdo Principal -->
   <div class="container mt-4">
     <!-- Header -->
     <div class="row mb-4">
-      <div class="col-md-8">
+      <div class="col-12 col-md-8 mb-3 mb-md-0">
         <h2 class="mb-0">
           <i class="fas fa-tools me-2 text-primary"></i>
           Manutenções
         </h2>
         <p class="text-muted mb-0">Gerencie as manutenções dos seus veículos</p>
       </div>
-      <div class="col-md-4 text-md-end">
-        <button class="btn btn-primary" (click)="showAddForm = !showAddForm">
+      <div class="col-12 col-md-4 text-center text-md-end">
+        <button class="btn btn-primary w-100 w-md-auto" (click)="showAddForm = !showAddForm">
           <i class="fas fa-plus me-2"></i>
           Nova Manutenção
         </button>
@@ -25,7 +25,8 @@
 
     <!-- Filtros -->
     <div class="row mb-4" *ngIf="vehicles.length > 0">
-      <div class="col-md-6">
+      <div class="col-12 col-md-6 mb-3 mb-md-0">
+        <label class="form-label d-block d-md-none">Filtrar por veículo:</label>
         <select class="form-select" [(ngModel)]="selectedVehicleFilter" (change)="filterMaintenances()">
           <option value="">Todos os veículos</option>
           <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
@@ -33,7 +34,8 @@
           </option>
         </select>
       </div>
-      <div class="col-md-6">
+      <div class="col-12 col-md-6">
+        <label class="form-label d-block d-md-none">Filtrar por tipo:</label>
         <select class="form-select" [(ngModel)]="selectedTypeFilter" (change)="filterMaintenances()">
           <option value="">Todos os tipos</option>
           <option value="realizada">Realizadas</option>
@@ -45,8 +47,8 @@
     <!-- Formulário de Adicionar Manutenção -->
     <div class="row mb-4" *ngIf="showAddForm">
       <div class="col-12">
-        <div class="card border-primary">
-          <div class="card-header bg-primary text-white">
+        <div class="card">
+          <div class="card-header">
             <h5 class="mb-0">
               <i class="fas fa-wrench me-2"></i>
               Adicionar Nova Manutenção
@@ -98,29 +100,30 @@
 
                 <!-- Data -->
                 <div class="col-md-6 mb-3">
-  <label class="form-label">Data *</label>
-  <input 
-    type="date" 
-    class="form-control" 
-    formControlName="date"
-    [min]="getMinDate()"
-    [max]="getMaxDate()"
-    [class.is-invalid]="isFieldInvalid('date')"
-    [class.is-valid]="maintenanceForm.get('date')?.valid && maintenanceForm.get('date')?.touched">
-  
-  <!-- Mensagens de erro específicas -->
-  <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
-    {{ getDateErrorMessage() }}
-  </div>
-  
-  <!-- Texto de ajuda -->
-  <div class="form-text" *ngIf="!isFieldInvalid('date') && maintenanceForm.get('type')?.value">
-    <small class="text-muted">
-      <i class="fas fa-info-circle me-1"></i>
-      {{ getDateHelperText() }}
-    </small>
-  </div>
-</div>
+                  <label class="form-label">Data *</label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    formControlName="date"
+                    [min]="getMinDate()"
+                    [max]="getMaxDate()"
+                    [class.is-invalid]="isFieldInvalid('date')"
+                    [class.is-valid]="maintenanceForm.get('date')?.valid && maintenanceForm.get('date')?.touched">
+                  
+                  <!-- Mensagens de erro específicas -->
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
+                    {{ getDateErrorMessage() }}
+                  </div>
+                  
+                  <!-- Texto de ajuda -->
+                  <div class="form-text" *ngIf="!isFieldInvalid('date') && maintenanceForm.get('type')?.value">
+                    <small class="text-muted">
+                      <i class="fas fa-info-circle me-1"></i>
+                      {{ getDateHelperText() }}
+                    </small>
+                  </div>
+                </div>
+                
                 <!-- Itens da Manutenção -->
                 <div class="col-12 mb-3">
                   <label class="form-label">Itens da Manutenção</label>
@@ -187,14 +190,16 @@
               <!-- Botões -->
               <div class="row">
                 <div class="col-12">
-                  <button type="button" class="btn btn-secondary me-2" (click)="cancelAdd()">
-                    Cancelar
-                  </button>
-                  <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                    <i class="fas fa-save me-2" *ngIf="!isLoading"></i>
-                    Salvar Manutenção
-                  </button>
+                  <div class="d-flex flex-column flex-md-row gap-2">
+                    <button type="button" class="btn btn-secondary" (click)="cancelAdd()">
+                      <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                      <i class="fas fa-save me-2" *ngIf="!isLoading"></i>
+                      {{ isLoading ? 'Salvando...' : 'Salvar Manutenção' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
@@ -251,8 +256,7 @@
             <div class="card h-100 maintenance-card" [class.border-success]="maintenance.type === 'realizada'" [class.border-warning]="maintenance.type === 'agendada'">
               <div class="card-header d-flex justify-content-between align-items-center" 
                    [class.bg-success]="maintenance.type === 'realizada'" 
-                   [class.bg-warning]="maintenance.type === 'agendada'"
-                   [class.text-white]="maintenance.type === 'realizada'">
+                   [class.bg-warning]="maintenance.type === 'agendada'">
                 <h6 class="mb-0">
                   <i class="fas fa-wrench me-2"></i>
                   {{ maintenance.title }}
@@ -293,17 +297,69 @@
                 </div>
               </div>
               
-              <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+              <div class="card-footer bg-transparent d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
                 <strong class="text-primary">
                   Total: R$ {{ maintenance.totalCost | number:'1.2-2' }}
                 </strong>
-                <button class="btn btn-outline-danger btn-sm" (click)="deleteMaintenance(maintenance.id!)">
-                  <i class="fas fa-trash"></i>
+                <button class="btn btn-outline-danger btn-sm" (click)="showDeleteModal(maintenance)">
+                  <i class="fas fa-trash me-1"></i><span class="d-none d-md-inline">Excluir</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Component -->
+  <app-footer></app-footer>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+          Confirmar Exclusão
+        </h4>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir esta manutenção?</p>
+        <div class="maintenance-info-modal" *ngIf="maintenanceToDelete">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>{{ maintenanceToDelete.title }}</strong>
+            <span class="badge" 
+                  [class.bg-success]="maintenanceToDelete.type === 'realizada'"
+                  [class.bg-warning]="maintenanceToDelete.type === 'agendada'"
+                  [class.text-dark]="maintenanceToDelete.type === 'agendada'">
+              {{ maintenanceToDelete.type === 'realizada' ? 'Realizada' : 'Agendada' }}
+            </span>
+          </div>
+          <small class="text-muted d-block">
+            <i class="fas fa-car me-1"></i>{{ maintenanceToDelete.vehicleName }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="fas fa-calendar me-1"></i>{{ maintenanceToDelete.date | date:'dd/MM/yyyy' }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="fas fa-dollar-sign me-1"></i>Total: R$ {{ maintenanceToDelete.totalCost | number:'1.2-2' }}
+          </small>
+        </div>
+        <p class="warning-text">
+          <i class="fas fa-info-circle me-1"></i>
+          Esta ação não pode ser desfeita.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          <span *ngIf="isDeleting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!isDeleting" class="fas fa-trash me-1"></i>
+          {{ isDeleting ? 'Excluindo...' : 'Confirmar Exclusão' }}
+        </button>
       </div>
     </div>
   </div>
