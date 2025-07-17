@@ -58,6 +58,8 @@ export const routes: Routes = [
         component: ExpensesComponent,
         canActivate: [authGuard]
     },
+    { path: 'termos', redirectTo: '/legal/termos' },
+    { path: 'privacidade', redirectTo: '/legal/privacidade' },
     {
         path: '**',
         redirectTo: '/login'
