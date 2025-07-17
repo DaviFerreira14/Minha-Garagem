@@ -1,3 +1,4 @@
+// src/app/componentes/dashboard/dashboard.ts - VERSÃO COMPLETA E SIMPLIFICADA
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -5,8 +6,6 @@ import { Subscription } from 'rxjs';
 
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
-import { NotificationService } from '../../services/notification';
-import { EmailService } from '../../services/email';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,230 +15,254 @@ import { EmailService } from '../../services/email';
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy {
-navigateToDashboard() {
-throw new Error('Method not implemented.');
-}
-  
   // Estados principais
-  hasVehicles = false;
-  isLoading = false;
   vehicles: Vehicle[] = [];
-  totalVehicles = 0;
-  recentVehicle: Vehicle | null = null;
+  isLoading = true;
+  errorMessage = '';
   
-  private vehiclesSubscription = new Subscription();
+  private vehicleSubscription?: Subscription;
 
   constructor(
-    private authService: AuthService,
     private router: Router,
     private vehicleService: VehicleService,
-    private notificationService: NotificationService,
-    private emailService: EmailService
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    
-    this.initializeVehicles();
+    this.loadVehicles();
     this.vehicleService.migrateFromLocalStorage();
   }
 
   ngOnDestroy(): void {
-    this.vehiclesSubscription.unsubscribe();
+    if (this.vehicleSubscription) {
+      this.vehicleSubscription.unsubscribe();
+    }
   }
 
-  // ===== INICIALIZAÇÃO =====
-  private initializeVehicles(): void {
-    const userId = this.authService.getUserId();
-    if (!userId) {
+  // ===== CARREGAMENTO =====
+  private loadVehicles(): void {
+    if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
-    
-    this.isLoading = true;
-    this.vehiclesSubscription = this.vehicleService.getVehiclesByUser(userId).subscribe({
-      next: (vehicles) => {
+
+    this.vehicleSubscription = this.vehicleService.getVehicles().subscribe({
+      next: (vehicles: Vehicle[]) => {
         this.vehicles = vehicles;
-        this.hasVehicles = vehicles.length > 0;
-        this.totalVehicles = vehicles.length;
-        this.recentVehicle = this.getLatestVehicle(vehicles);
         this.isLoading = false;
-        console.log('Veículos carregados:', vehicles.length);
+        this.errorMessage = '';
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Erro ao carregar veículos:', error);
+        this.errorMessage = 'Erro ao carregar veículos';
         this.isLoading = false;
       }
     });
   }
 
-  private getLatestVehicle(vehicles: Vehicle[]): Vehicle | null {
-    return vehicles.length === 0 ? null : 
-      vehicles.reduce((latest, current) => 
-        new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
-      );
+  // ===== PROPRIEDADES CALCULADAS =====
+  get hasVehicles(): boolean {
+    return this.vehicles.length > 0;
   }
 
-  // ===== MÉTODOS DE USUÁRIO =====
-  getUserDisplayName = () => this.authService.getUserDisplayName();
-  getUserFirstName = () => this.authService.getUserFirstName();
-  getUserEmail = () => this.authService.getUserEmail();
-  get currentUser() { return this.authService.getCurrentUser(); }
+  get totalVehicles(): number {
+    return this.vehicles.length;
+  }
+
+  // ===== MÉTODOS DO USUÁRIO =====
+  getUserDisplayName(): string {
+    return this.authService.getUserDisplayName();
+  }
+
+  getUserFirstName(): string {
+    return this.authService.getUserFirstName();
+  }
 
   getCurrentDate(): string {
     return new Date().toLocaleDateString('pt-BR', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   }
 
-  // ===== AÇÕES DE VEÍCULOS =====
-  addFirstVehicle = () => this.router.navigate(['/add-vehicle']);
-  addNewVehicle = () => this.router.navigate(['/add-vehicle']);
-
-  viewVehicleDetails(vehicleId?: string): void {
-    if (!vehicleId) return this.showError('ID do veículo não encontrado');
-    this.router.navigate(['/vehicles', vehicleId]);
+  get currentUser() {
+    return this.authService.getCurrentUser();
   }
 
-  editVehicle(vehicleId?: string): void {
-    if (!vehicleId) return this.showError('ID do veículo não encontrado');
-    this.router.navigate(['/vehicles', vehicleId, 'edit']);
-  }
-
-  async removeVehicle(vehicle: Vehicle): Promise<void> {
-    if (!vehicle.id) return this.showError('ID do veículo não encontrado');
-    
-    if (!confirm(`Remover ${vehicle.brand} ${vehicle.model}?`)) return;
-    
-    try {
-      await this.vehicleService.removeVehicle(vehicle.id);
-      console.log('Veículo removido');
-    } catch (error) {
-      console.error('Erro ao remover:', error);
-      this.showError('Erro ao remover veículo');
-    }
-  }
-
-  // ===== FORMATAÇÃO E EXIBIÇÃO =====
-  getVehicleFullName = (vehicle: Vehicle) => `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
-
-  getFuelBadgeClass(fuel: string): string {
-    const classes = {
-      gasoline: 'bg-primary', ethanol: 'bg-success', flex: 'bg-info',
-      diesel: 'bg-warning', electric: 'bg-success', hybrid: 'bg-secondary'
-    };
-    return classes[fuel as keyof typeof classes] || 'bg-secondary';
+  // ===== MÉTODOS DE VEÍCULO =====
+  getVehicleFullName(vehicle: Vehicle): string {
+    return `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
   }
 
   getFuelDisplayName(fuel: string): string {
-    const names = {
-      gasoline: 'Gasolina', ethanol: 'Etanol', flex: 'Flex',
-      diesel: 'Diesel', electric: 'Elétrico', hybrid: 'Híbrido'
+    const names: { [key: string]: string } = {
+      'gasoline': 'Gasolina',
+      'ethanol': 'Etanol',
+      'flex': 'Flex',
+      'diesel': 'Diesel',
+      'electric': 'Elétrico',
+      'hybrid': 'Híbrido'
     };
-    return names[fuel as keyof typeof names] || fuel;
+    return names[fuel] || fuel;
+  }
+
+  getFuelBadgeClass(fuel: string): string {
+    const classes: { [key: string]: string } = {
+      'gasoline': 'bg-primary',
+      'ethanol': 'bg-success',
+      'flex': 'bg-warning',
+      'diesel': 'bg-dark',
+      'electric': 'bg-info',
+      'hybrid': 'bg-secondary'
+    };
+    return classes[fuel] || 'bg-secondary';
   }
 
   getTransmissionDisplayName(transmission: string): string {
-    const names = { manual: 'Manual', automatic: 'Automática', cvt: 'CVT' };
-    return names[transmission as keyof typeof names] || transmission;
+    const names: { [key: string]: string } = {
+      'manual': 'Manual',
+      'automatic': 'Automática',
+      'cvt': 'CVT',
+      'semi-automatic': 'Semi-automática'
+    };
+    return names[transmission] || transmission;
   }
 
-  formatMileage = (mileage: number) => new Intl.NumberFormat('pt-BR').format(mileage) + ' km';
+  formatMileage(mileage: number): string {
+    return mileage.toLocaleString('pt-BR') + ' km';
+  }
 
-  formatDate(date: Date | string | undefined): string {
+  formatDate(date: Date | undefined): string {
     if (!date) return 'Data não disponível';
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj instanceof Date ? dateObj.toLocaleDateString('pt-BR') : 'Data inválida';
+    return new Date(date).toLocaleDateString('pt-BR');
+  }
+
+  // ===== AÇÕES DE VEÍCULO =====
+  async removeVehicle(vehicle: Vehicle): Promise<void> {
+    if (!vehicle.id) return;
+    
+    const confirmDelete = confirm(`Tem certeza que deseja excluir o veículo ${vehicle.brand} ${vehicle.model}?`);
+    
+    if (confirmDelete) {
+      try {
+        await this.vehicleService.removeVehicle(vehicle.id);
+      } catch (error) {
+        console.error('Erro ao deletar veículo:', error);
+        this.errorMessage = 'Erro ao deletar veículo';
+      }
+    }
+  }
+
+  async deleteVehicle(vehicle: Vehicle): Promise<void> {
+    return this.removeVehicle(vehicle);
   }
 
   // ===== NAVEGAÇÃO =====
-  private navigate(route: string[], successMsg: string, errorMsg: string): void {
-    this.router.navigate(route).then(success => {
-      console.log(success ? successMsg : `Falha: ${errorMsg}`);
-      if (!success) this.showError(errorMsg);
-    }).catch(error => {
-      console.error('Erro na navegação:', error);
-      this.showError(errorMsg);
-    });
+  navigateToDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 
-  goToMaintenance = () => this.navigate(['/maintenance'], 'Navegação para manutenções OK', 'Erro ao navegar para manutenções');
-  navigateToMaintenance = () => this.goToMaintenance();
-  navigateToExpenses = () => this.navigate(['/expenses'], 'Navegação para gastos OK', 'Erro ao navegar para gastos');
-
-  navigateToVehicles(): void {
-    console.log('Página de Veículos em desenvolvimento');
-    alert('Página de Veículos será implementada em breve!');
+  navigateToExpenses(): void {
+    this.router.navigate(['/expenses']);
   }
 
-  navigateToProfile(): void {
-    console.log('Página de Perfil em desenvolvimento');
-    alert('Página de Perfil será implementada em breve!');
+  navigateToMaintenance(): void {
+    this.router.navigate(['/maintenance']);
   }
 
-  navigateToSettings(): void {
-    console.log('Página de Configurações em desenvolvimento');
-    alert('Página de Configurações será implementada em breve!');
+  goToMaintenance(): void {
+    this.router.navigate(['/maintenance']);
   }
 
-  async logout(): Promise<void> {
-    try {
-      await this.authService.logout();
-    } catch (error) {
-      console.error('Erro no logout:', error);
-      this.showError('Erro ao sair');
+  addFirstVehicle(): void {
+    this.router.navigate(['/add-vehicle']);
+  }
+
+  addNewVehicle(): void {
+    this.router.navigate(['/add-vehicle']);
+  }
+
+  goToAddVehicle(): void {
+    this.router.navigate(['/add-vehicle']);
+  }
+
+  viewVehicleDetails(vehicleId: string): void {
+    this.router.navigate(['/vehicle-details', vehicleId]);
+  }
+
+  goToVehicleDetails(vehicle: Vehicle): void {
+    if (vehicle.id) {
+      this.router.navigate(['/vehicle-details', vehicle.id]);
     }
   }
 
-  // ===== EMAIL E NOTIFICAÇÕES =====
+  editVehicle(vehicleId: string): void {
+    this.router.navigate(['/edit-vehicle', vehicleId]);
+  }
+
+  goToEditVehicle(vehicle: Vehicle): void {
+    if (vehicle.id) {
+      this.router.navigate(['/edit-vehicle', vehicle.id]);
+    }
+  }
+
+  goToExpenses(): void {
+    this.router.navigate(['/expenses']);
+  }
+
+  goToReports(): void {
+    this.router.navigate(['/reports']);
+  }
+
+  // ===== ESTATÍSTICAS PLACEHOLDER =====
+  getUpcomingMaintenanceCount(): number {
+    return 0; // Implementar depois
+  }
+
+  getTotalExpensesThisMonth(): string {
+    return '0,00'; // Implementar depois
+  }
+
   getEmailServiceStatus(): string {
-    if (!this.emailService.isConfigured()) return '⚠️ EmailJS não configurado';
-    const status = this.notificationService.getServiceStatus();
-    return status.isRunning ? '✅ Sistema Ativo' : '❌ Sistema Inativo';
+    return 'Serviço ativo'; // Implementar depois
   }
 
-  // ===== ESTATÍSTICAS =====
-  getTotalVehicles = () => this.totalVehicles;
-  getUpcomingMaintenanceCount = () => 0; // TODO: Implementar
-  getTotalExpensesThisMonth = () => 0; // TODO: Implementar
-  getVehicleStats = () => this.vehicleService.getVehicleStats();
-  isFirstTimeUser = () => !this.hasVehicles;
-
-  // ===== UTILITÁRIOS =====
-  private showError(message: string): void {
-    console.error(message);
-    alert(message);
-  }
-
-  refreshDashboard(): void {
-    this.initializeVehicles();
-  }
-
+  // ===== MÉTODOS DE DESENVOLVIMENTO =====
   async clearAllVehicles(): Promise<void> {
-    if (confirm('Limpar todos os veículos? Ação irreversível!')) {
-      await this.vehicleService.clearAllVehicles();
-      console.log('Veículos limpos');
+    const confirmClear = confirm('Tem certeza que deseja limpar todos os veículos? Esta ação não pode ser desfeita.');
+    
+    if (confirmClear) {
+      try {
+        await this.vehicleService.clearAllVehicles();
+        console.log('Todos os veículos foram removidos');
+      } catch (error) {
+        console.error('Erro ao limpar veículos:', error);
+        this.errorMessage = 'Erro ao limpar veículos';
+      }
     }
   }
 
-  // ===== DEBUG E MIGRAÇÃO =====
-  forceSyncVehicles(): void {
-    console.log('🔄 Sincronizando veículos...');
+  reinitializeListener(): void {
     this.vehicleService.reinitializeListener();
   }
 
-  checkMigrationStatus(): void {
-    const hasLocal = !!localStorage.getItem('vehicles');
-    const hasFirebase = this.vehicles.length > 0;
-    
-    console.log('Migração:', { localStorage: hasLocal, firebase: hasFirebase });
-    
-    if (hasLocal && !hasFirebase) {
-      console.log('⚠️ Executando migração...');
-      this.vehicleService.migrateFromLocalStorage();
+  async migrateData(): Promise<void> {
+    try {
+      await this.vehicleService.migrateFromLocalStorage();
+      console.log('Migração concluída');
+    } catch (error) {
+      console.error('Erro na migração:', error);
     }
+  }
+
+  refreshDashboard(): void {
+    this.loadVehicles();
+  }
+
+  // ===== LOGOUT =====
+  async logout(): Promise<void> {
+    await this.authService.logout();
   }
 }
