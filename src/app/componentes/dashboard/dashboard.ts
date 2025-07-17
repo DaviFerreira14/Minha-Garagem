@@ -1,4 +1,4 @@
-// src/app/componentes/dashboard/dashboard.ts - VERSÃO COMPLETA E SIMPLIFICADA
+// dashboard.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -6,11 +6,13 @@ import { Subscription } from 'rxjs';
 
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
+import { NavbarComponent } from '../navbar/navbar';
+import { FooterComponent } from '../footer/footer';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NavbarComponent, FooterComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })

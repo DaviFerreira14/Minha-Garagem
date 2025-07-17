@@ -1,0 +1,61 @@
+<!-- navbar.component.html -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <div class="container">
+    <!-- Logo à esquerda -->
+    <a class="navbar-brand fw-bold" (click)="navigateToDashboard()" style="cursor: pointer;">
+      <i class="fas fa-car me-2"></i>Minha Garagem
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Links centralizados -->
+      <ul class="navbar-nav mx-auto">
+        <li class="nav-item">
+          <a class="nav-link" 
+             [class.active]="isActiveRoute('/dashboard')"
+             (click)="navigateToDashboard()"
+             style="cursor: pointer;">
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" 
+             [class.active]="isActiveRoute('/maintenance')"
+             (click)="navigateToMaintenance()"
+             style="cursor: pointer;">
+            Manutenções
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" 
+             [class.active]="isActiveRoute('/expenses')"
+             (click)="navigateToExpenses()"
+             style="cursor: pointer;">
+            Gastos
+          </a>
+        </li>
+      </ul>
+      
+      <!-- Usuário à direita -->
+      <div class="navbar-nav ms-auto">
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" 
+             data-bs-toggle="dropdown" 
+             style="cursor: pointer;">
+            <i class="fas fa-user-circle me-1"></i>{{ getUserDisplayName() }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" (click)="logout()" style="cursor: pointer;">
+                <i class="fas fa-sign-out-alt me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
