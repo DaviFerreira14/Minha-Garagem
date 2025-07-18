@@ -1,3 +1,4 @@
+// add-vehicle.component.ts
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,6 +26,11 @@ export class AddVehicle implements OnInit, AfterViewInit {
   isSubmitting = false;
   isDragOver = false;
 
+  // Notificações
+  showNotification = false;
+  notificationMessage = '';
+  notificationType: 'success' | 'error' | 'info' = 'info';
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
@@ -39,11 +45,9 @@ export class AddVehicle implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Inicialização após a view estar pronta
     this.loadDraft();
   }
 
-  // Gerar lista de anos
   generateYearsList(): void {
     const currentYear = new Date().getFullYear();
     this.years = [];
@@ -52,7 +56,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     }
   }
 
-  // Inicializar formulário
   initializeForm(): void {
     this.vehicleForm = this.fb.group({
       brand: ['', [Validators.required]],
@@ -69,23 +72,19 @@ export class AddVehicle implements OnInit, AfterViewInit {
     });
   }
 
-  // Getter para acessar controles do formulário
   get f() {
     return this.vehicleForm.controls;
   }
 
-  // Obter usuário atual
   getCurrentUser(): any {
     return this.authService.getCurrentUser();
   }
 
-  // Verificar se campo tem erro
   hasError(fieldName: string, errorType: string): boolean {
     const field = this.vehicleForm.get(fieldName);
     return field ? field.hasError(errorType) && (field.dirty || field.touched) : false;
   }
 
-  // Obter erro do campo
   getFieldError(fieldName: string): string {
     const field = this.vehicleForm.get(fieldName);
     if (field && field.errors && (field.dirty || field.touched)) {
@@ -95,12 +94,10 @@ export class AddVehicle implements OnInit, AfterViewInit {
       if (field.errors['min']) {
         return `${this.getFieldDisplayName(fieldName)} deve ser maior que ${field.errors['min'].min}`;
       }
-      // Adicione mais validações conforme necessário
     }
     return '';
   }
 
-  // Obter nome de exibição do campo
   private getFieldDisplayName(fieldName: string): string {
     const fieldNames: { [key: string]: string } = {
       brand: 'Marca',
@@ -117,7 +114,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     return fieldNames[fieldName] || fieldName;
   }
 
-  // Carregar rascunho do localStorage
   private loadDraft(): void {
     const draft = localStorage.getItem('vehicleDraft');
     if (draft) {
@@ -160,12 +156,10 @@ export class AddVehicle implements OnInit, AfterViewInit {
     }
   }
 
-  // Disparar seleção de arquivo
   triggerFileInput(): void {
     this.fileInput.nativeElement.click();
   }
 
-  // Quando arquivo é selecionado
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
@@ -173,7 +167,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     }
   }
 
-  // Processar arquivo de imagem
   private processImageFile(file: File): void {
     this.selectedPhoto = file;
     
@@ -184,12 +177,10 @@ export class AddVehicle implements OnInit, AfterViewInit {
     reader.readAsDataURL(file);
   }
 
-  // Alterar foto
   changePhoto(): void {
     this.triggerFileInput();
   }
 
-  // Remover foto
   removePhoto(): void {
     this.selectedPhoto = null;
     this.photoPreview = null;
@@ -198,15 +189,12 @@ export class AddVehicle implements OnInit, AfterViewInit {
     }
   }
 
-  // Formatar placa
   formatLicensePlate(event: any): void {
     let value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     
     if (value.length <= 3) {
-      // Formato antigo: ABC-1234
       value = value;
     } else if (value.length <= 7) {
-      // Formato novo: ABC1234 ou ABC1D23
       if (value.length > 3) {
         value = value.slice(0, 3) + '-' + value.slice(3);
       }
@@ -218,92 +206,86 @@ export class AddVehicle implements OnInit, AfterViewInit {
     this.vehicleForm.get('licensePlate')?.setValue(value);
   }
 
-  // Submeter formulário
- // src/app/pages/vehicle/vehicle.component.ts
-async onSubmit(): Promise<void> {
-  if (this.vehicleForm.valid && !this.isSubmitting) {
-    this.isSubmitting = true;
+  async onSubmit(): Promise<void> {
+    if (this.vehicleForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
 
-    try {
-      // Aguarda a inicialização do estado de autenticação
-      await this.authService.waitForAuthStateInitialized();  // Garantir que o estado está inicializado
+      try {
+        await this.authService.waitForAuthStateInitialized();
+        const currentUser = this.authService.getCurrentUser();
+        console.log('Usuário atual:', currentUser);
 
-      // Verifique se o usuário está logado
-      const currentUser = this.authService.getCurrentUser();
-      console.log('Usuário atual:', currentUser);  // Verifique no console os dados do usuário
+        if (!currentUser || !currentUser.uid) {
+          throw new Error('Usuário não está logado');
+        }
 
-      if (!currentUser || !currentUser.uid) {
-        throw new Error('Usuário não está logado');
-      }
+        const formData = this.vehicleForm.value;
 
-      const formData = this.vehicleForm.value;
+        let photoBase64 = '';
+        if (this.selectedPhoto) {
+          photoBase64 = await this.vehicleService.processImageFile(this.selectedPhoto);
+        }
 
-      // Processar foto se existir
-      let photoBase64 = '';
-      if (this.selectedPhoto) {
-        photoBase64 = await this.vehicleService.processImageFile(this.selectedPhoto);
-      }
+        const vehicleData: Omit<Vehicle, 'id' | 'createdAt'> = {
+          brand: formData.brand,
+          model: formData.model,
+          year: parseInt(formData.year),
+          licensePlate: formData.licensePlate,
+          color: formData.color,
+          fuel: formData.fuel,
+          mileage: parseInt(formData.mileage),
+          engineSize: formData.engineSize || '',
+          transmission: formData.transmission,
+          doors: parseInt(formData.doors),
+          observations: formData.observations || '',
+          photo: photoBase64,
+          userId: currentUser.uid
+        };
 
-      // Preparar dados do veículo
-      const vehicleData: Omit<Vehicle, 'id' | 'createdAt'> = {
-        brand: formData.brand,
-        model: formData.model,
-        year: parseInt(formData.year),
-        licensePlate: formData.licensePlate,
-        color: formData.color,
-        fuel: formData.fuel,
-        mileage: parseInt(formData.mileage),
-        engineSize: formData.engineSize || '',
-        transmission: formData.transmission,
-        doors: parseInt(formData.doors),
-        observations: formData.observations || '',
-        photo: photoBase64,
-        userId: currentUser.uid // Garantido que o usuário está logado
-      };
+        const savedVehicle = await this.vehicleService.addVehicle(vehicleData);
+        console.log('Veículo salvo com sucesso:', savedVehicle);
 
-      // Salvar veículo usando o serviço
-      const savedVehicle = await this.vehicleService.addVehicle(vehicleData);
-      console.log('Veículo salvo com sucesso:', savedVehicle);
-
-      // Limpar rascunho após sucesso
-      localStorage.removeItem('vehicleDraft');
-
-      // Mostrar mensagem de sucesso (opcional)
-      this.showSuccessMessage();
-
-      // Aguardar um pouco antes de navegar para melhor UX
-      setTimeout(() => {
+        localStorage.removeItem('vehicleDraft');
+        
+        // Redirecionar diretamente sem alert
         this.router.navigate(['/dashboard']);
-      }, 1000);
 
-    } catch (error) {
-      console.error('Erro ao salvar veículo:', error);
-      this.showErrorMessage('Erro ao salvar veículo. Tente novamente.');
-    } finally {
-      this.isSubmitting = false;
+      } catch (error) {
+        console.error('Erro ao salvar veículo:', error);
+        this.showNotificationMessage('Erro ao salvar veículo. Tente novamente.', 'error');
+      } finally {
+        this.isSubmitting = false;
+      }
+    } else {
+      this.markFormGroupTouched();
     }
-  } else {
-    this.markFormGroupTouched();
   }
-}
 
+  private showNotificationMessage(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    this.notificationMessage = message;
+    this.notificationType = type;
+    this.showNotification = true;
+    
+    setTimeout(() => {
+      this.hideNotification();
+    }, 4000);
+  }
 
+  hideNotification(): void {
+    this.showNotification = false;
+    setTimeout(() => {
+      this.notificationMessage = '';
+    }, 300);
+  }
 
-  // Mostrar mensagem de sucesso
   private showSuccessMessage(): void {
-    // Você pode implementar um toast/snackbar aqui
-    // Por enquanto, apenas um alert
     alert('Veículo salvo com sucesso! Redirecionando para o dashboard...');
   }
 
-  // Mostrar mensagem de erro
   private showErrorMessage(message: string): void {
-    // Você pode implementar um toast/snackbar aqui
-    // Por enquanto, apenas um alert
     alert(message);
   }
 
-  // Salvar como rascunho
   saveAsDraft(): void {
     const draftData = {
       form: this.vehicleForm.value,
@@ -313,10 +295,9 @@ async onSubmit(): Promise<void> {
     
     localStorage.setItem('vehicleDraft', JSON.stringify(draftData));
     console.log('Rascunho salvo');
-    alert('Rascunho salvo com sucesso!');
+    this.showNotificationMessage('Rascunho salvo com sucesso!', 'success');
   }
 
-  // Marcar todos os campos como tocados
   private markFormGroupTouched(): void {
     Object.keys(this.vehicleForm.controls).forEach(key => {
       const control = this.vehicleForm.get(key);
@@ -326,9 +307,7 @@ async onSubmit(): Promise<void> {
     });
   }
 
-  // Navegar para dashboard
   goToDashboard(): void {
-    // Confirmar se quer sair sem salvar
     if (this.vehicleForm.dirty) {
       const confirmLeave = confirm('Você tem alterações não salvas. Deseja sair mesmo assim?');
       if (!confirmLeave) {
@@ -338,7 +317,6 @@ async onSubmit(): Promise<void> {
     this.router.navigate(['/dashboard']);
   }
 
-  // Método para desenvolvimento - limpar todos os veículos
   clearAllVehicles(): void {
     if (confirm('Tem certeza que deseja limpar todos os veículos? Esta ação não pode ser desfeita.')) {
       this.vehicleService.clearAllVehicles();
