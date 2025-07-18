@@ -1,7 +1,7 @@
-<!-- src/app/componentes/expenses/expenses.html - VERSÃO CORRIGIDA -->
+<!-- expenses.component.html -->
 <div class="expenses-container">
   
-   <!-- Navbar Component -->
+  <!-- Navbar Component -->
   <app-navbar></app-navbar>
 
   <!-- Conteúdo Principal -->
@@ -9,15 +9,15 @@
     
     <!-- Header -->
     <div class="row mb-4">
-      <div class="col-md-8">
+      <div class="col-12 col-md-8 mb-3 mb-md-0">
         <h2 class="mb-0">
           <i class="fas fa-chart-line me-2 text-primary"></i>
           Controle de Gastos
         </h2>
         <p class="text-muted mb-0">Gerencie todos os gastos dos seus veículos</p>
       </div>
-      <div class="col-md-4 text-md-end">
-        <button class="btn btn-primary" (click)="showAddForm = !showAddForm">
+      <div class="col-12 col-md-4 text-center text-md-end">
+        <button class="btn btn-primary w-100 w-md-auto" (click)="showAddForm = !showAddForm">
           <i class="fas fa-plus me-2"></i>
           Novo Gasto
         </button>
@@ -26,7 +26,7 @@
 
     <!-- Resumo de Gastos -->
     <div class="row mb-4" *ngIf="expenseSummary">
-      <div class="col-md-3 col-sm-6 mb-3">
+      <div class="col-md-4 col-sm-6 mb-3">
         <div class="summary-card">
           <div class="summary-icon">
             <i class="fas fa-dollar-sign text-success"></i>
@@ -38,7 +38,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3 col-sm-6 mb-3">
+      <div class="col-md-4 col-sm-6 mb-3">
         <div class="summary-card">
           <div class="summary-icon">
             <i class="fas fa-receipt text-info"></i>
@@ -50,7 +50,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-3 col-sm-6 mb-3">
+      <div class="col-md-4 col-sm-6 mb-3">
         <div class="summary-card">
           <div class="summary-icon">
             <i class="fas fa-calculator text-warning"></i>
@@ -59,19 +59,6 @@
             <h3>{{ formatCurrency(expenseSummary.averagePerExpense) }}</h3>
             <p>Média por Gasto</p>
             <small class="text-muted">{{ getPeriodDisplayName() }}</small>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 col-sm-6 mb-3">
-        <div class="summary-card">
-          <div class="summary-icon">
-            <i class="fas fa-chart-pie text-purple"></i>
-          </div>
-          <div class="summary-content">
-            <button class="btn btn-outline-primary btn-sm w-100">
-              <i class="fas fa-chart-bar me-1"></i>
-              Ver Relatório
-            </button>
           </div>
         </div>
       </div>
@@ -90,7 +77,7 @@
           <div class="card-body">
             <div class="row">
               <!-- Período -->
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3 col-12 mb-3">
                 <label class="form-label">Período</label>
                 <select class="form-select" [(ngModel)]="selectedPeriodFilter" (change)="filterExpenses()">
                   <option value="day">Hoje</option>
@@ -100,8 +87,8 @@
                 </select>
               </div>
 
-              <!-- Mês (quando período = mês) -->
-              <div class="col-md-2 mb-3" *ngIf="selectedPeriodFilter === 'month'">
+              <!-- Mês -->
+              <div class="col-md-2 col-12 mb-3" *ngIf="selectedPeriodFilter === 'month'">
                 <label class="form-label">Mês</label>
                 <select class="form-select" [(ngModel)]="selectedMonth" (change)="filterExpenses()">
                   <option value="01">Janeiro</option>
@@ -120,7 +107,7 @@
               </div>
 
               <!-- Ano -->
-              <div class="col-md-2 mb-3" *ngIf="selectedPeriodFilter === 'month' || selectedPeriodFilter === 'year'">
+              <div class="col-md-2 col-12 mb-3" *ngIf="selectedPeriodFilter === 'month' || selectedPeriodFilter === 'year'">
                 <label class="form-label">Ano</label>
                 <select class="form-select" [(ngModel)]="selectedYear" (change)="filterExpenses()">
                   <option value="2024">2024</option>
@@ -130,7 +117,7 @@
               </div>
 
               <!-- Veículo -->
-              <div class="col-md-3 mb-3">
+              <div class="col-md-3 col-12 mb-3">
                 <label class="form-label">Veículo</label>
                 <select class="form-select" [(ngModel)]="selectedVehicleFilter" (change)="filterExpenses()">
                   <option value="">Todos os veículos</option>
@@ -141,7 +128,7 @@
               </div>
 
               <!-- Categoria -->
-              <div class="col-md-2 mb-3">
+              <div class="col-md-2 col-12 mb-3">
                 <label class="form-label">Categoria</label>
                 <select class="form-select" [(ngModel)]="selectedCategoryFilter" (change)="filterExpenses()">
                   <option value="">Todas</option>
@@ -159,8 +146,8 @@
     <!-- Formulário de Adicionar Gasto -->
     <div class="row mb-4" *ngIf="showAddForm">
       <div class="col-12">
-        <div class="card border-primary">
-          <div class="card-header bg-primary text-white">
+        <div class="card">
+          <div class="card-header">
             <h5 class="mb-0">
               <i class="fas fa-plus me-2"></i>
               Adicionar Novo Gasto
@@ -284,14 +271,16 @@
               <!-- Botões -->
               <div class="row">
                 <div class="col-12">
-                  <button type="button" class="btn btn-secondary me-2" (click)="cancelAdd()">
-                    Cancelar
-                  </button>
-                  <button type="submit" class="btn btn-primary" [disabled]="isLoading">
-                    <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                    <i class="fas fa-save me-2" *ngIf="!isLoading"></i>
-                    Salvar Gasto
-                  </button>
+                  <div class="d-flex flex-column flex-md-row gap-2">
+                    <button type="button" class="btn btn-secondary" (click)="cancelAdd()">
+                      <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+                      <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                      <i class="fas fa-save me-2" *ngIf="!isLoading"></i>
+                      {{ isLoading ? 'Salvando...' : 'Salvar Gasto' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
@@ -343,78 +332,153 @@
         </div>
 
         <!-- Lista de Gastos -->
-        <div class="row" *ngIf="!isLoadingExpenses && filteredExpenses.length > 0">
-          <div class="col-12">
-            <div class="card">
-              <div class="card-header">
-                <h5 class="mb-0">
-                  <i class="fas fa-list me-2"></i>
-                  Gastos - {{ getPeriodDisplayName() }}
-                  <span class="badge bg-primary ms-2">{{ filteredExpenses.length }}</span>
-                </h5>
-              </div>
-              <div class="card-body p-0">
-                <div class="table-responsive">
-                  <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Data</th>
-                        <th>Categoria</th>
-                        <th>Descrição</th>
-                        <th>Veículo</th>
-                        <th>Valor</th>
-                        <th>Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let expense of filteredExpenses">
-                        <td>
-                          <small class="text-muted">{{ formatDate(expense.date) }}</small>
-                        </td>
-                        <td>
-                          <span class="d-flex align-items-center">
-                            <i [class]="getCategoryById(expense.category)?.icon || 'fas fa-circle'" 
-                               [style.color]="getCategoryById(expense.category)?.color || '#6c757d'"
-                               class="me-2"></i>
-                            <div>
-                              <small class="fw-bold">{{ getCategoryById(expense.category)?.name || 'Categoria' }}</small>
-                              <br *ngIf="expense.subcategory">
-                              <small class="text-muted" *ngIf="expense.subcategory">{{ expense.subcategory }}</small>
-                            </div>
-                          </span>
-                        </td>
-                        <td>
-                          <div>
-                            <span class="fw-bold">{{ expense.description }}</span>
-                            <br *ngIf="expense.notes">
-                            <small class="text-muted" *ngIf="expense.notes">{{ expense.notes }}</small>
-                          </div>
-                        </td>
-                        <td>
-                          <small class="text-muted">{{ expense.vehicleName }}</small>
-                          <br *ngIf="expense.odometer">
-                          <small class="text-info" *ngIf="expense.odometer">
-                            <i class="fas fa-tachometer-alt me-1"></i>{{ expense.odometer }} km
-                          </small>
-                        </td>
-                        <td>
-                          <span class="fw-bold text-success">{{ formatCurrency(expense.amount) }}</span>
-                        </td>
-                        <td>
-                          <button class="btn btn-outline-danger btn-sm" 
-                                  (click)="deleteExpense(expense.id!)"
-                                  title="Excluir gasto">
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+        <div *ngIf="!isLoadingExpenses && filteredExpenses.length > 0">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Gastos - {{ getPeriodDisplayName() }}
+                <span class="badge bg-primary ms-2">{{ filteredExpenses.length }}</span>
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <!-- Mobile: Cards -->
+              <div class="d-block d-md-none">
+                <div *ngFor="let expense of filteredExpenses" class="expense-mobile-card">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center">
+                      <i [class]="getCategoryById(expense.category)?.icon || 'fas fa-circle'" 
+                         [style.color]="getCategoryById(expense.category)?.color || '#6c757d'"
+                         class="me-2"></i>
+                      <div>
+                        <strong>{{ expense.description }}</strong>
+                        <br><small class="text-muted">{{ getCategoryById(expense.category)?.name }}</small>
+                      </div>
+                    </div>
+                    <div class="text-end">
+                      <div class="fw-bold text-success">{{ formatCurrency(expense.amount) }}</div>
+                      <small class="text-muted">{{ formatDate(expense.date) }}</small>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ expense.vehicleName }}</small>
+                    <button class="btn btn-outline-danger btn-sm" (click)="showDeleteModal(expense)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              <!-- Desktop: Table -->
+              <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Data</th>
+                      <th>Categoria</th>
+                      <th>Descrição</th>
+                      <th>Veículo</th>
+                      <th>Valor</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let expense of filteredExpenses">
+                      <td>
+                        <small class="text-muted">{{ formatDate(expense.date) }}</small>
+                      </td>
+                      <td>
+                        <span class="d-flex align-items-center">
+                          <i [class]="getCategoryById(expense.category)?.icon || 'fas fa-circle'" 
+                             [style.color]="getCategoryById(expense.category)?.color || '#6c757d'"
+                             class="me-2"></i>
+                          <div>
+                            <small class="fw-bold">{{ getCategoryById(expense.category)?.name || 'Categoria' }}</small>
+                            <br *ngIf="expense.subcategory">
+                            <small class="text-muted" *ngIf="expense.subcategory">{{ expense.subcategory }}</small>
+                          </div>
+                        </span>
+                      </td>
+                      <td>
+                        <div>
+                          <span class="fw-bold">{{ expense.description }}</span>
+                          <br *ngIf="expense.notes">
+                          <small class="text-muted" *ngIf="expense.notes">{{ expense.notes }}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <small class="text-muted">{{ expense.vehicleName }}</small>
+                        <br *ngIf="expense.odometer">
+                        <small class="text-info" *ngIf="expense.odometer">
+                          <i class="fas fa-tachometer-alt me-1"></i>{{ expense.odometer }} km
+                        </small>
+                      </td>
+                      <td>
+                        <span class="fw-bold text-success">{{ formatCurrency(expense.amount) }}</span>
+                      </td>
+                      <td>
+                        <button class="btn btn-outline-danger btn-sm" 
+                                (click)="showDeleteModal(expense)"
+                                title="Excluir gasto">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Component -->
+  <app-footer></app-footer>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+          Confirmar Exclusão
+        </h4>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir este gasto?</p>
+        <div class="expense-info-modal" *ngIf="expenseToDelete">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>{{ expenseToDelete.description }}</strong>
+            <span class="fw-bold text-success">{{ formatCurrency(expenseToDelete.amount) }}</span>
+          </div>
+          <small class="text-muted d-block">
+            <i [class]="getCategoryById(expenseToDelete.category)?.icon || 'fas fa-circle'" 
+               [style.color]="getCategoryById(expenseToDelete.category)?.color || '#6c757d'"
+               class="me-1"></i>{{ getCategoryById(expenseToDelete.category)?.name }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="fas fa-car me-1"></i>{{ expenseToDelete.vehicleName }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="fas fa-calendar me-1"></i>{{ formatDate(expenseToDelete.date) }}
+          </small>
+        </div>
+        <p class="warning-text">
+          <i class="fas fa-info-circle me-1"></i>
+          Esta ação não pode ser desfeita.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          <span *ngIf="isDeleting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!isDeleting" class="fas fa-trash me-1"></i>
+          {{ isDeleting ? 'Excluindo...' : 'Confirmar Exclusão' }}
+        </button>
       </div>
     </div>
   </div>

@@ -1,3 +1,4 @@
+// expenses.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,12 +9,13 @@ import { firstValueFrom } from 'rxjs';
 import { ExpenseService, Expense, ExpenseCategory, ExpenseSummary } from '../../services/expense';
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
-import { NavbarComponent } from "../navbar/navbar";
+import { NavbarComponent } from '../navbar/navbar';
+import { FooterComponent } from '../footer/footer';
 
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NavbarComponent, FooterComponent],
   templateUrl: './expenses.html',
   styleUrls: ['./expenses.css']
 })
@@ -24,25 +26,28 @@ export class ExpensesComponent implements OnInit {
   vehicles: Vehicle[] = [];
   categories: ExpenseCategory[] = [];
   
-  // Estados do componente
-  showAddForm: boolean = false;
-  isLoading: boolean = false;
-  isLoadingExpenses: boolean = true;
-  successMessage: string = '';
-  errorMessage: string = '';
+  // Estados
+  showAddForm = false;
+  isLoading = false;
+  isLoadingExpenses = true;
+  successMessage = '';
+  errorMessage = '';
+  
+  // Estados do modal
+  showDeleteConfirm = false;
+  expenseToDelete: Expense | null = null;
+  isDeleting = false;
   
   // Filtros
-  selectedVehicleFilter: string = '';
-  selectedCategoryFilter: string = '';
-  selectedPeriodFilter: string = 'month'; // day, week, month, year
-  selectedMonth: string = '';
-  selectedYear: string = '';
+  selectedVehicleFilter = '';
+  selectedCategoryFilter = '';
+  selectedPeriodFilter = 'month';
+  selectedMonth = '';
+  selectedYear = '';
   
-  // Resumos e estatísticas
+  // Resumos
   expenseSummary: ExpenseSummary | null = null;
-  
-  // Data mínima para inputs
-  minDate: string = '';
+  minDate = '';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -73,18 +78,13 @@ export class ExpensesComponent implements OnInit {
       notes: ['']
     });
 
-    // Listener para mudanças na categoria (para subcategorias)
     this.expenseForm.get('category')?.valueChanges.subscribe(categoryId => {
       this.onCategoryChange(categoryId);
     });
   }
 
   private setMinDate(): void {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    this.minDate = `${year}-${month}-${day}`;
+    this.minDate = new Date().toISOString().split('T')[0];
   }
 
   private initializeDateFilters(): void {
@@ -121,10 +121,7 @@ export class ExpensesComponent implements OnInit {
   }
 
   onCategoryChange(categoryId: string): void {
-    // Limpar subcategoria quando categoria muda
     this.expenseForm.get('subcategory')?.setValue('');
-    
-    // Resetar validação de subcategoria se necessário
     const subcategoryControl = this.expenseForm.get('subcategory');
     if (subcategoryControl) {
       subcategoryControl.clearValidators();
@@ -144,19 +141,15 @@ export class ExpensesComponent implements OnInit {
   filterExpenses(): void {
     let filtered = [...this.expenses];
 
-    // Filtrar por veículo
     if (this.selectedVehicleFilter) {
       filtered = filtered.filter(expense => expense.vehicleId === this.selectedVehicleFilter);
     }
 
-    // Filtrar por categoria
     if (this.selectedCategoryFilter) {
       filtered = filtered.filter(expense => expense.category === this.selectedCategoryFilter);
     }
 
-    // Filtrar por período
     filtered = this.filterByPeriod(filtered);
-
     this.filteredExpenses = filtered;
     this.calculateSummary();
   }
@@ -219,21 +212,16 @@ export class ExpensesComponent implements OnInit {
 
       try {
         const formValue = this.expenseForm.value;
-        
-        // Encontrar o veículo selecionado
         const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
+        
         if (!selectedVehicle) {
           this.errorMessage = 'Veículo não encontrado';
-          this.isLoading = false;
           return;
         }
 
-        // Criar data correta (fuso horário local)
-        const dateInput = formValue.date;
-        const [year, month, day] = dateInput.split('-').map(Number);
+        const [year, month, day] = formValue.date.split('-').map(Number);
         const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0);
 
-        // Criar objeto de gasto
         const expense: Omit<Expense, 'id' | 'userId' | 'createdAt'> = {
           vehicleId: formValue.vehicleId,
           vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
@@ -246,7 +234,6 @@ export class ExpensesComponent implements OnInit {
           notes: formValue.notes?.trim() || ''
         };
 
-        // Salvar no Firebase
         const result = await this.expenseService.addExpense(expense);
 
         if (result.success) {
@@ -269,21 +256,44 @@ export class ExpensesComponent implements OnInit {
     }
   }
 
-  async deleteExpense(expenseId: string): Promise<void> {
-    if (confirm('Tem certeza que deseja excluir este gasto?')) {
-      try {
-        const result = await this.expenseService.deleteExpense(expenseId);
-        
-        if (result.success) {
-          this.successMessage = result.message;
-          await this.loadExpenses();
-        } else {
-          this.errorMessage = result.message;
-        }
-      } catch (error) {
-        console.error('Erro ao deletar gasto:', error);
-        this.errorMessage = 'Erro ao deletar gasto';
+  // Modal de exclusão
+  showDeleteModal(expense: Expense): void {
+    this.expenseToDelete = expense;
+    this.showDeleteConfirm = true;
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm = false;
+    this.expenseToDelete = null;
+    this.isDeleting = false;
+  }
+
+  async confirmDelete(): Promise<void> {
+    if (!this.expenseToDelete?.id) return;
+    
+    this.isDeleting = true;
+    try {
+      const result = await this.expenseService.deleteExpense(this.expenseToDelete.id);
+      if (result.success) {
+        this.successMessage = result.message;
+        this.showDeleteConfirm = false;
+        this.expenseToDelete = null;
+        await this.loadExpenses();
+      } else {
+        this.errorMessage = result.message;
       }
+    } catch (error) {
+      console.error('Erro ao deletar gasto:', error);
+      this.errorMessage = 'Erro ao deletar gasto';
+    } finally {
+      this.isDeleting = false;
+    }
+  }
+
+  async deleteExpense(expenseId: string): Promise<void> {
+    const expense = this.expenses.find(e => e.id === expenseId);
+    if (expense) {
+      this.showDeleteModal(expense);
     }
   }
 
@@ -311,7 +321,7 @@ export class ExpensesComponent implements OnInit {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  // Métodos de formatação
+  // Formatação
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -344,13 +354,5 @@ export class ExpensesComponent implements OnInit {
   // Navegação
   goToDashboard(): void {
     this.router.navigate(['/dashboard']);
-  }
-
-  async logout(): Promise<void> {
-    await this.authService.logout();
-  }
-
-  get currentUser() {
-    return this.authService.getCurrentUser();
   }
 }
