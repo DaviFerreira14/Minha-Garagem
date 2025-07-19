@@ -1,6 +1,5 @@
-// src/app/services/vehicle.ts - VERSÃO SIMPLIFICADA E CORRIGIDA
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { 
   collection, 
   addDoc, 
@@ -44,18 +43,8 @@ export class VehicleService {
   private unsubscribeSnapshot: (() => void) | null = null;
 
   constructor(private authService: AuthService) {
-    this.initializeService();
-  }
-
-  // ===== INICIALIZAÇÃO SIMPLES =====
-  private initializeService(): void {
-    // Aguardar usuário estar logado
     this.authService.currentUser$.subscribe(user => {
-      if (user) {
-        this.startListening(user.uid);
-      } else {
-        this.stopListening();
-      }
+      user ? this.startListening(user.uid) : this.stopListening();
     });
   }
 
@@ -78,7 +67,6 @@ export class VehicleService {
           updatedAt: data['updatedAt']?.toDate()
         } as Vehicle;
       });
-
       this.vehiclesSubject.next(vehicles);
     });
   }
@@ -91,7 +79,6 @@ export class VehicleService {
     this.vehiclesSubject.next([]);
   }
 
-  // ===== MÉTODOS PÚBLICOS =====
   getVehicles(): Observable<Vehicle[]> {
     return this.vehicles$;
   }
@@ -106,9 +93,7 @@ export class VehicleService {
 
   async addVehicle(vehicleData: Omit<Vehicle, 'id' | 'createdAt'>): Promise<Vehicle> {
     const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      throw new Error('Usuário não autenticado');
-    }
+    if (!currentUser) throw new Error('Usuário não autenticado');
 
     const newVehicleData = {
       ...vehicleData,
@@ -117,26 +102,16 @@ export class VehicleService {
     };
 
     const docRef = await addDoc(collection(db, 'vehicles'), newVehicleData);
-    
-    return {
-      id: docRef.id,
-      ...newVehicleData
-    };
+    return { id: docRef.id, ...newVehicleData };
   }
 
   async updateVehicle(id: string, vehicleData: Partial<Vehicle>): Promise<Vehicle> {
-    const updateData = {
-      ...vehicleData,
-      updatedAt: new Date()
-    };
-
-    // Remover campos que não devem ser atualizados
+    const updateData = { ...vehicleData, updatedAt: new Date() };
     delete (updateData as any).id;
     delete (updateData as any).createdAt;
     delete (updateData as any).userId;
 
     await updateDoc(doc(db, 'vehicles', id), updateData);
-
     const vehicle = this.getVehicleById(id);
     return { ...vehicle!, ...updateData as Partial<Vehicle> };
   }
@@ -151,16 +126,13 @@ export class VehicleService {
 
   async clearAllVehicles(): Promise<void> {
     const vehicles = this.vehiclesSubject.value;
-    for (const vehicle of vehicles) {
-      await this.removeVehicle(vehicle.id);
-    }
+    await Promise.all(vehicles.map(vehicle => this.removeVehicle(vehicle.id)));
   }
 
   async clearUserVehicles(): Promise<void> {
     return this.clearAllVehicles();
   }
 
-  // ===== UTILITÁRIOS =====
   processImageFile(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -195,9 +167,7 @@ export class VehicleService {
 
   reinitializeListener(): void {
     const currentUser = this.authService.getCurrentUser();
-    if (currentUser) {
-      this.startListening(currentUser.uid);
-    }
+    if (currentUser) this.startListening(currentUser.uid);
   }
 
   async migrateFromLocalStorage(): Promise<void> {
@@ -210,10 +180,10 @@ export class VehicleService {
     try {
       const localVehicles = JSON.parse(stored);
       if (Array.isArray(localVehicles)) {
-        for (const vehicle of localVehicles) {
+        await Promise.all(localVehicles.map(vehicle => {
           const { id, createdAt, updatedAt, ...vehicleData } = vehicle;
-          await this.addVehicle({ ...vehicleData, userId: currentUser.uid });
-        }
+          return this.addVehicle({ ...vehicleData, userId: currentUser.uid });
+        }));
         localStorage.removeItem('vehicles');
       }
     } catch (error) {

@@ -1,4 +1,4 @@
-// src/app/app.routes.ts - VERSÃO ATUALIZADA
+// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { Login } from './componentes/login/login';
 import { Register } from './componentes/register/register';

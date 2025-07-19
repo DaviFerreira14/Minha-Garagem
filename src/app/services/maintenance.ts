@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.config';
 import { AuthService } from './auth';
-import { getDoc } from '@angular/fire/firestore';
 
 export interface MaintenanceItem {
   id?: string;
@@ -28,24 +27,17 @@ export interface Maintenance {
   providedIn: 'root'
 })
 export class MaintenanceService {
-
   constructor(private authService: AuthService) {}
 
-  // Helper function para tratar erros de forma consistente
   private getErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
-    }
-    if (typeof error === 'string') {
-      return error;
-    }
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
     if (error && typeof error === 'object' && 'message' in error) {
       return String((error as any).message);
     }
     return 'Erro desconhecido';
   }
 
-  // Adicionar nova manutenção
   async addMaintenance(maintenance: Omit<Maintenance, 'id' | 'userId' | 'createdAt'>): Promise<{ success: boolean; message: string }> {
     try {
       const currentUser = this.authService.getCurrentUser();
@@ -53,43 +45,32 @@ export class MaintenanceService {
         return { success: false, message: 'Usuário não autenticado' };
       }
 
-      // CORREÇÃO: Usar currentUser.uid ao invés de currentUser.id
       const maintenanceData: Omit<Maintenance, 'id'> = {
         ...maintenance,
-        userId: currentUser.uid, // ← MUDANÇA AQUI
+        userId: currentUser.uid,
         createdAt: new Date()
       };
-
-      console.log('Dados da manutenção a serem salvos:', maintenanceData);
-      console.log('User UID:', currentUser.uid);
       
       await addDoc(collection(db, 'maintenances'), maintenanceData);
       return { success: true, message: 'Manutenção adicionada com sucesso!' };
-    } catch (error: unknown) { // ← TIPAGEM EXPLÍCITA
-      console.error('Erro ao adicionar manutenção:', error);
+    } catch (error: unknown) {
       return { success: false, message: 'Erro ao adicionar manutenção: ' + this.getErrorMessage(error) };
     }
   }
 
-  // Buscar manutenções do usuário
   async getUserMaintenances(): Promise<Maintenance[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
-      if (!currentUser) {
-        console.log('Usuário não autenticado');
-        return [];
-      }
-
-      console.log('Buscando manutenções para o usuário:', currentUser.uid);
+      if (!currentUser) return [];
 
       const q = query(
         collection(db, 'maintenances'),
-        where('userId', '==', currentUser.uid), // ← MUDANÇA AQUI
+        where('userId', '==', currentUser.uid),
         orderBy('date', 'desc')
       );
 
       const querySnapshot = await getDocs(q);
-      const maintenances = querySnapshot.docs.map(doc => {
+      return querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -98,16 +79,12 @@ export class MaintenanceService {
           createdAt: data['createdAt'].toDate()
         } as Maintenance;
       });
-
-      console.log('Manutenções encontradas:', maintenances);
-      return maintenances;
-    } catch (error: unknown) { // ← TIPAGEM EXPLÍCITA
+    } catch (error: unknown) {
       console.error('Erro ao buscar manutenções:', error);
       return [];
     }
   }
 
-  // Buscar manutenções por veículo
   async getVehicleMaintenances(vehicleId: string): Promise<Maintenance[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
@@ -115,7 +92,7 @@ export class MaintenanceService {
 
       const q = query(
         collection(db, 'maintenances'),
-        where('userId', '==', currentUser.uid), // ← MUDANÇA AQUI
+        where('userId', '==', currentUser.uid),
         where('vehicleId', '==', vehicleId),
         orderBy('date', 'desc')
       );
@@ -130,71 +107,60 @@ export class MaintenanceService {
           createdAt: data['createdAt'].toDate()
         } as Maintenance;
       });
-    } catch (error: unknown) { // ← TIPAGEM EXPLÍCITA
+    } catch (error: unknown) {
       console.error('Erro ao buscar manutenções do veículo:', error);
       return [];
     }
   }
 
-  // Atualizar manutenção
   async updateMaintenance(maintenanceId: string, updates: Partial<Maintenance>): Promise<{ success: boolean; message: string }> {
-  try {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return { success: false, message: 'Usuário não autenticado' };
-    }
+    try {
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser) {
+        return { success: false, message: 'Usuário não autenticado' };
+      }
 
-    // Verificar se a manutenção pertence ao usuário atual
-    const maintenanceRef = doc(db, 'maintenances', maintenanceId);
-    const maintenanceSnap = await getDoc(maintenanceRef);
-    
-    if (!maintenanceSnap.exists()) {
-      return { success: false, message: 'Manutenção não encontrada' };
-    }
+      const maintenanceRef = doc(db, 'maintenances', maintenanceId);
+      const maintenanceSnap = await getDoc(maintenanceRef);
+      
+      if (!maintenanceSnap.exists()) {
+        return { success: false, message: 'Manutenção não encontrada' };
+      }
 
-    const maintenanceData = maintenanceSnap.data();
-    if (maintenanceData['userId'] !== currentUser.uid) {
-      return { success: false, message: 'Você não tem permissão para editar esta manutenção' };
-    }
+      const maintenanceData = maintenanceSnap.data();
+      if (maintenanceData['userId'] !== currentUser.uid) {
+        return { success: false, message: 'Você não tem permissão para editar esta manutenção' };
+      }
 
-    // Atualizar documento
-    await updateDoc(maintenanceRef, updates);
-    return { success: true, message: 'Manutenção atualizada com sucesso!' };
-  } catch (error: unknown) {
-    console.error('Erro ao atualizar manutenção:', error);
-    return { success: false, message: 'Erro ao atualizar manutenção: ' + this.getErrorMessage(error) };
+      await updateDoc(maintenanceRef, updates);
+      return { success: true, message: 'Manutenção atualizada com sucesso!' };
+    } catch (error: unknown) {
+      return { success: false, message: 'Erro ao atualizar manutenção: ' + this.getErrorMessage(error) };
+    }
   }
-}
 
-  // Deletar manutenção
   async deleteMaintenance(maintenanceId: string): Promise<{ success: boolean; message: string }> {
     try {
       await deleteDoc(doc(db, 'maintenances', maintenanceId));
       return { success: true, message: 'Manutenção removida com sucesso!' };
-    } catch (error: unknown) { // ← TIPAGEM EXPLÍCITA
-      console.error('Erro ao remover manutenção:', error);
+    } catch (error: unknown) {
       return { success: false, message: 'Erro ao remover manutenção: ' + this.getErrorMessage(error) };
     }
   }
 
-  // Calcular total gasto em manutenções
   calculateTotalMaintenanceCost(maintenances: Maintenance[]): number {
     return maintenances.reduce((total, maintenance) => total + maintenance.totalCost, 0);
   }
 
-  // Agrupar manutenções por veículo
   groupMaintenancesByVehicle(maintenances: Maintenance[]): { [vehicleId: string]: Maintenance[] } {
     return maintenances.reduce((groups, maintenance) => {
       const vehicleId = maintenance.vehicleId;
-      if (!groups[vehicleId]) {
-        groups[vehicleId] = [];
-      }
+      if (!groups[vehicleId]) groups[vehicleId] = [];
       groups[vehicleId].push(maintenance);
       return groups;
     }, {} as { [vehicleId: string]: Maintenance[] });
   }
 
-  // Métodos de estatísticas para o dashboard
   async getMaintenanceStats(): Promise<{
     total: number;
     thisMonth: number;
@@ -215,26 +181,18 @@ export class MaintenanceService {
         m.type === 'agendada' && m.date > now
       );
 
-      const totalCost = this.calculateTotalMaintenanceCost(maintenances);
-
       return {
         total: maintenances.length,
         thisMonth: thisMonthMaintenances.length,
         upcoming: upcomingMaintenances.length,
-        totalCost: totalCost
+        totalCost: this.calculateTotalMaintenanceCost(maintenances)
       };
     } catch (error: unknown) {
       console.error('Erro ao obter estatísticas de manutenção:', error);
-      return {
-        total: 0,
-        thisMonth: 0,
-        upcoming: 0,
-        totalCost: 0
-      };
+      return { total: 0, thisMonth: 0, upcoming: 0, totalCost: 0 };
     }
   }
 
-  // Obter manutenções próximas do vencimento
   async getUpcomingMaintenances(days: number = 30): Promise<Maintenance[]> {
     try {
       const maintenances = await this.getUserMaintenances();
@@ -253,7 +211,6 @@ export class MaintenanceService {
     }
   }
 
-  // Obter histórico de manutenções por período
   async getMaintenanceHistory(startDate: Date, endDate: Date): Promise<Maintenance[]> {
     try {
       const maintenances = await this.getUserMaintenances();
@@ -266,6 +223,4 @@ export class MaintenanceService {
       return [];
     }
   }
-
-  
 }

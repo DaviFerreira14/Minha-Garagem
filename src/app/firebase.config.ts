@@ -3,12 +3,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// IMPORTANTE: Substitua pela sua configuração do Firebase Console
-// Para obter essas configurações:
-// 1. Acesse https://console.firebase.google.com/
-// 2. Selecione seu projeto
-// 3. Vá em Configurações do projeto (ícone engrenagem)
-// 4. Role até "Seus apps" e clique no ícone web
 export const firebaseConfig = {
 apiKey: "AIzaSyDvK9O4WL94twhY93SWgxjEDwpKDOCa6A8",
   authDomain: "minha-garagem-c8704.firebaseapp.com",

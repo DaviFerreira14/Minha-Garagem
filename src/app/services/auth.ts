@@ -1,4 +1,3 @@
-// src/app/services/auth.ts - VERSÃO SIMPLIFICADA
 import { Injectable, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -39,18 +38,15 @@ export class AuthService implements OnInit {
     this.initAuthStateListener();
   }
 
-  // ===== PERSISTÊNCIA =====
   async setPersistence(rememberMe: boolean): Promise<void> {
     try {
       const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
       await setPersistence(this.auth, persistence);
-      console.log(`✅ Persistence set to ${rememberMe ? 'LOCAL' : 'SESSION'}`);
     } catch (error) {
-      console.error('❌ Error setting persistence:', error);
+      console.error('Error setting persistence:', error);
     }
   }
 
-  // ===== AUTH STATE LISTENER =====
   private initAuthStateListener() {
     onAuthStateChanged(this.auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -67,7 +63,6 @@ export class AuthService implements OnInit {
         };
 
         this.currentUserSubject.next(user);
-        console.log('🔐 User authenticated:', user.email);
       } else {
         this.currentUserSubject.next(null);
       }
@@ -78,11 +73,21 @@ export class AuthService implements OnInit {
     });
   }
 
-  // ===== GETTERS =====
-  getCurrentUser(): User | null { return this.currentUserSubject.value; }
-  isLoggedIn(): boolean { return !!this.getCurrentUser(); }
-  getUserId(): string | null { return this.currentUserSubject.value?.uid || null; }
-  getUserEmail(): string | null { return this.currentUserSubject.value?.email || null; }
+  getCurrentUser(): User | null { 
+    return this.currentUserSubject.value; 
+  }
+
+  isLoggedIn(): boolean { 
+    return !!this.getCurrentUser(); 
+  }
+
+  getUserId(): string | null { 
+    return this.currentUserSubject.value?.uid || null; 
+  }
+
+  getUserEmail(): string | null { 
+    return this.currentUserSubject.value?.email || null; 
+  }
   
   getUserDisplayName(): string {
     const user = this.currentUserSubject.value;
@@ -98,11 +103,8 @@ export class AuthService implements OnInit {
     await firstValueFrom(this.authStateInitializedSubject);
   }
 
-  // ===== AUTHENTICATION METHODS =====
   async login(email: string, password: string): Promise<AuthResult> {
     try {
-      console.log('🔐 Attempting login for:', email);
-      
       const credential = await signInWithEmailAndPassword(this.auth, email, password);
       const firebaseUser = credential.user;
 
@@ -118,11 +120,8 @@ export class AuthService implements OnInit {
       await setDoc(userRef, userToSave, { merge: true });
       this.currentUserSubject.next(userToSave);
 
-      console.log('✅ Login successful for:', email);
       return { success: true, message: 'Login realizado com sucesso!', user: userToSave };
-      
     } catch (error: any) {
-      console.error('❌ Login error:', error);
       this.currentUserSubject.next(null);
       return { success: false, message: this.getFirebaseErrorMessage(error) };
     }
@@ -130,8 +129,6 @@ export class AuthService implements OnInit {
 
   async loginWithGoogle(): Promise<AuthResult> {
     try {
-      console.log('🔐 Attempting Google login...');
-      
       const provider = new GoogleAuthProvider();
       provider.addScope('email');
       provider.addScope('profile');
@@ -151,11 +148,8 @@ export class AuthService implements OnInit {
       await setDoc(userRef, user, { merge: true });
       this.currentUserSubject.next(user);
 
-      console.log('✅ Google login successful for:', user.email);
       return { success: true, message: 'Login com Google realizado com sucesso!', user };
-      
     } catch (error: any) {
-      console.error('❌ Google login error:', error);
       this.currentUserSubject.next(null);
       return { success: false, message: this.getGoogleErrorMessage(error) };
     }
@@ -163,8 +157,6 @@ export class AuthService implements OnInit {
 
   async register(email: string, password: string, displayName?: string): Promise<AuthResult> {
     try {
-      console.log('📝 Attempting registration for:', email);
-      
       const credential = await createUserWithEmailAndPassword(this.auth, email, password);
       const firebaseUser = credential.user;
 
@@ -184,11 +176,8 @@ export class AuthService implements OnInit {
       await setDoc(userRef, user);
       this.currentUserSubject.next(user);
 
-      console.log('✅ Registration successful for:', email);
       return { success: true, message: 'Cadastro realizado com sucesso!', user };
-      
     } catch (error: any) {
-      console.error('❌ Registration error:', error);
       this.currentUserSubject.next(null);
       return { success: false, message: this.getFirebaseErrorMessage(error) };
     }
@@ -202,16 +191,12 @@ export class AuthService implements OnInit {
       if (!rememberMe) {
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('rememberMe');
-        console.log('🗑️ Remember me data cleared');
-      } else {
-        console.log('💾 Remember me data preserved');
       }
       
       this.currentUserSubject.next(null);
-      console.log('✅ Logout successful');
       this.router.navigate(['/login']);
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      console.error('Logout error:', error);
     }
   }
 
@@ -253,11 +238,6 @@ export class AuthService implements OnInit {
     return { score, message: messages[score] };
   }
 
-  debugCurrentUser(): void {
-    console.log('Usuário atual:', this.getCurrentUser());
-  }
-
-  // ===== ERROR HANDLING =====
   private getFirebaseErrorMessage(error: any): string {
     const errorMessages: { [key: string]: string } = {
       'auth/email-already-in-use': 'Este email já está em uso.',

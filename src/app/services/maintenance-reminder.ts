@@ -1,4 +1,4 @@
-//maintenance-reminder.service.ts 
+//maintenance-reminder.ts 
 import { Injectable } from '@angular/core';
 import { MaintenanceService, Maintenance } from './maintenance';
 import { EmailService } from './email';

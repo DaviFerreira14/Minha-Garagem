@@ -1,4 +1,3 @@
-// src/app/services/expense.ts
 import { Injectable } from '@angular/core';
 import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase.config';
@@ -14,7 +13,7 @@ export interface Expense {
   description: string;
   amount: number;
   date: Date;
-  odometer?: number; // Quilometragem no momento do gasto
+  odometer?: number;
   notes?: string;
   createdAt: Date;
 }
@@ -43,8 +42,6 @@ export interface ExpenseSummary {
   providedIn: 'root'
 })
 export class ExpenseService {
-
-  // Categorias predefinidas de gastos
   private readonly categories: ExpenseCategory[] = [
     {
       id: 'fuel',
@@ -99,17 +96,14 @@ export class ExpenseService {
 
   constructor(private authService: AuthService) {}
 
-  // Obter categorias disponíveis
   getCategories(): ExpenseCategory[] {
     return this.categories;
   }
 
-  // Obter categoria por ID
   getCategoryById(categoryId: string): ExpenseCategory | undefined {
     return this.categories.find(cat => cat.id === categoryId);
   }
 
-  // Adicionar novo gasto
   async addExpense(expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Promise<{ success: boolean; message: string }> {
     try {
       const currentUser = this.authService.getCurrentUser();
@@ -122,25 +116,18 @@ export class ExpenseService {
         userId: currentUser.uid,
         createdAt: new Date()
       };
-
-      console.log('Salvando gasto:', expenseData);
       
       await addDoc(collection(db, 'expenses'), expenseData);
       return { success: true, message: 'Gasto adicionado com sucesso!' };
     } catch (error: unknown) {
-      console.error('Erro ao adicionar gasto:', error);
       return { success: false, message: 'Erro ao adicionar gasto: ' + this.getErrorMessage(error) };
     }
   }
 
-  // Buscar gastos do usuário
   async getUserExpenses(): Promise<Expense[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
-      if (!currentUser) {
-        console.log('Usuário não autenticado');
-        return [];
-      }
+      if (!currentUser) return [];
 
       const q = query(
         collection(db, 'expenses'),
@@ -149,7 +136,7 @@ export class ExpenseService {
       );
 
       const querySnapshot = await getDocs(q);
-      const expenses = querySnapshot.docs.map(doc => {
+      return querySnapshot.docs.map(doc => {
         const data = doc.data();
         return {
           id: doc.id,
@@ -158,16 +145,12 @@ export class ExpenseService {
           createdAt: data['createdAt'].toDate()
         } as Expense;
       });
-
-      console.log('Gastos encontrados:', expenses);
-      return expenses;
     } catch (error: unknown) {
       console.error('Erro ao buscar gastos:', error);
       return [];
     }
   }
 
-  // Buscar gastos por veículo
   async getVehicleExpenses(vehicleId: string): Promise<Expense[]> {
     try {
       const currentUser = this.authService.getCurrentUser();
@@ -196,7 +179,6 @@ export class ExpenseService {
     }
   }
 
-  // Buscar gastos por período
   async getExpensesByPeriod(
     startDate: Date, 
     endDate: Date, 
@@ -212,15 +194,9 @@ export class ExpenseService {
         where('userId', '==', currentUser.uid)
       );
 
-      // Adicionar filtros opcionais
-      if (vehicleId) {
-        q = query(q, where('vehicleId', '==', vehicleId));
-      }
-
-      if (category) {
-        q = query(q, where('category', '==', category));
-      }
-
+      if (vehicleId) q = query(q, where('vehicleId', '==', vehicleId));
+      if (category) q = query(q, where('category', '==', category));
+      
       q = query(q, orderBy('date', 'desc'));
 
       const querySnapshot = await getDocs(q);
@@ -234,7 +210,6 @@ export class ExpenseService {
         } as Expense;
       });
 
-      // Filtrar por período no cliente (mais flexível)
       return allExpenses.filter(expense => {
         const expenseDate = new Date(expense.date);
         return expenseDate >= startDate && expenseDate <= endDate;
@@ -245,40 +220,31 @@ export class ExpenseService {
     }
   }
 
-  // Atualizar gasto
   async updateExpense(expenseId: string, updates: Partial<Expense>): Promise<{ success: boolean; message: string }> {
     try {
-      const expenseRef = doc(db, 'expenses', expenseId);
-      await updateDoc(expenseRef, updates);
+      await updateDoc(doc(db, 'expenses', expenseId), updates);
       return { success: true, message: 'Gasto atualizado com sucesso!' };
     } catch (error: unknown) {
-      console.error('Erro ao atualizar gasto:', error);
       return { success: false, message: 'Erro ao atualizar gasto: ' + this.getErrorMessage(error) };
     }
   }
 
-  // Deletar gasto
   async deleteExpense(expenseId: string): Promise<{ success: boolean; message: string }> {
     try {
       await deleteDoc(doc(db, 'expenses', expenseId));
       return { success: true, message: 'Gasto removido com sucesso!' };
     } catch (error: unknown) {
-      console.error('Erro ao remover gasto:', error);
       return { success: false, message: 'Erro ao remover gasto: ' + this.getErrorMessage(error) };
     }
   }
 
-  // Calcular resumo de gastos
   calculateExpenseSummary(expenses: Expense[]): ExpenseSummary {
     const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
     const totalExpenses = expenses.length;
     const averagePerExpense = totalExpenses > 0 ? totalAmount / totalExpenses : 0;
 
-    // Breakdown por categoria
     const categoryBreakdown: { [category: string]: number } = {};
-    this.categories.forEach(cat => {
-      categoryBreakdown[cat.id] = 0;
-    });
+    this.categories.forEach(cat => categoryBreakdown[cat.id] = 0);
 
     expenses.forEach(expense => {
       if (categoryBreakdown.hasOwnProperty(expense.category)) {
@@ -286,15 +252,9 @@ export class ExpenseService {
       }
     });
 
-    return {
-      totalAmount,
-      totalExpenses,
-      averagePerExpense,
-      categoryBreakdown
-    };
+    return { totalAmount, totalExpenses, averagePerExpense, categoryBreakdown };
   }
 
-  // Comparar períodos
   calculatePeriodComparison(currentExpenses: Expense[], previousExpenses: Expense[]): ExpenseSummary {
     const currentSummary = this.calculateExpenseSummary(currentExpenses);
     const previousTotal = previousExpenses.reduce((sum, expense) => sum + expense.amount, 0);
@@ -313,18 +273,12 @@ export class ExpenseService {
     };
   }
 
-  // Helper para tratar erros
   private getErrorMessage(error: unknown): string {
-    if (error instanceof Error) {
-      return error.message;
-    }
-    if (typeof error === 'string') {
-      return error;
-    }
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
     return 'Erro desconhecido';
   }
 
-  // Obter gastos do mês atual
   async getCurrentMonthExpenses(): Promise<Expense[]> {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -333,7 +287,6 @@ export class ExpenseService {
     return this.getExpensesByPeriod(startOfMonth, endOfMonth);
   }
 
-  // Obter gastos da semana atual
   async getCurrentWeekExpenses(): Promise<Expense[]> {
     const now = new Date();
     const startOfWeek = new Date(now);
@@ -347,7 +300,6 @@ export class ExpenseService {
     return this.getExpensesByPeriod(startOfWeek, endOfWeek);
   }
 
-  // Obter gastos de hoje
   async getTodayExpenses(): Promise<Expense[]> {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());

@@ -18,47 +18,15 @@ import {
   providedIn: 'root'
 })
 export class DatabaseService {
-
-  constructor(private firestore: Firestore) { }
-
-  async testarConexao(): Promise<boolean> {
-    try {
-      console.log('Testando conexão com Firebase...');
-      
-      const docRef = await addDoc(collection(this.firestore, 'teste'), {
-        mensagem: 'Conexão funcionando!',
-        timestamp: Timestamp.now(),
-        usuario: 'Teste'
-      });
-      
-      console.log('✅ Documento criado com ID:', docRef.id);
-      
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        console.log('✅ Documento lido:', docSnap.data());
-      }
-      
-      await deleteDoc(docRef);
-      console.log('✅ Documento de teste removido');
-      
-      console.log('🎉 Firebase conectado com sucesso!');
-      return true;
-      
-    } catch (error) {
-      console.error('❌ Erro ao conectar com Firebase:', error);
-      return false;
-    }
-  }
+  constructor(private firestore: Firestore) {}
 
   async listarColecoes() {
     try {
       const colecoes = ['usuarios', 'veiculos', 'manutencoes', 'gastos'];
       
       for (const nomeColecao of colecoes) {
-        const snapshot = await getDocs(collection(this.firestore, nomeColecao));
-        console.log(`📁 Coleção '${nomeColecao}': ${snapshot.size} documentos`);
+        await getDocs(collection(this.firestore, nomeColecao));
       }
-      
     } catch (error) {
       console.error('Erro ao listar coleções:', error);
     }
@@ -70,10 +38,9 @@ export class DatabaseService {
         ...userData,
         dataCriacao: Timestamp.now()
       });
-      console.log('✅ Usuário criado:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('❌ Erro ao criar usuário:', error);
+      console.error('Erro ao criar usuário:', error);
       throw error;
     }
   }
@@ -91,9 +58,8 @@ export class DatabaseService {
         return { id: doc.id, ...doc.data() };
       }
       return null;
-      
     } catch (error) {
-      console.error('❌ Erro ao buscar usuário:', error);
+      console.error('Erro ao buscar usuário:', error);
       throw error;
     }
   }
@@ -104,10 +70,9 @@ export class DatabaseService {
         ...veiculoData,
         dataCriacao: Timestamp.now()
       });
-      console.log('✅ Veículo criado:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('❌ Erro ao criar veículo:', error);
+      console.error('Erro ao criar veículo:', error);
       throw error;
     }
   }
@@ -121,15 +86,9 @@ export class DatabaseService {
       );
       const querySnapshot = await getDocs(q);
       
-      const veiculos: any[] = [];
-      querySnapshot.forEach((doc) => {
-        veiculos.push({ id: doc.id, ...doc.data() });
-      });
-      
-      return veiculos;
-      
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error('❌ Erro ao buscar veículos:', error);
+      console.error('Erro ao buscar veículos:', error);
       throw error;
     }
   }
@@ -140,10 +99,9 @@ export class DatabaseService {
         ...manutencaoData,
         dataCriacao: Timestamp.now()
       });
-      console.log('✅ Manutenção criada:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('❌ Erro ao criar manutenção:', error);
+      console.error('Erro ao criar manutenção:', error);
       throw error;
     }
   }
@@ -157,15 +115,9 @@ export class DatabaseService {
       );
       const querySnapshot = await getDocs(q);
       
-      const manutencoes: any[] = [];
-      querySnapshot.forEach((doc) => {
-        manutencoes.push({ id: doc.id, ...doc.data() });
-      });
-      
-      return manutencoes;
-      
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error('❌ Erro ao buscar manutenções:', error);
+      console.error('Erro ao buscar manutenções:', error);
       throw error;
     }
   }
@@ -176,10 +128,9 @@ export class DatabaseService {
         ...gastoData,
         dataCriacao: Timestamp.now()
       });
-      console.log('✅ Gasto criado:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('❌ Erro ao criar gasto:', error);
+      console.error('Erro ao criar gasto:', error);
       throw error;
     }
   }
@@ -193,15 +144,9 @@ export class DatabaseService {
       );
       const querySnapshot = await getDocs(q);
       
-      const gastos: any[] = [];
-      querySnapshot.forEach((doc) => {
-        gastos.push({ id: doc.id, ...doc.data() });
-      });
-      
-      return gastos;
-      
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.error('❌ Erro ao buscar gastos:', error);
+      console.error('Erro ao buscar gastos:', error);
       throw error;
     }
   }
@@ -210,9 +155,8 @@ export class DatabaseService {
     try {
       const docRef = doc(this.firestore, colecao, id);
       await updateDoc(docRef, dados);
-      console.log('✅ Documento atualizado:', id);
     } catch (error) {
-      console.error('❌ Erro ao atualizar documento:', error);
+      console.error('Erro ao atualizar documento:', error);
       throw error;
     }
   }
@@ -221,9 +165,8 @@ export class DatabaseService {
     try {
       const docRef = doc(this.firestore, colecao, id);
       await deleteDoc(docRef);
-      console.log('✅ Documento deletado:', id);
     } catch (error) {
-      console.error('❌ Erro ao deletar documento:', error);
+      console.error('Erro ao deletar documento:', error);
       throw error;
     }
   }
