@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { collection, addDoc, query, where, orderBy, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase.config';
 import { AuthService } from './auth';
+import { getDoc } from '@angular/fire/firestore';
 
 export interface MaintenanceItem {
   id?: string;
@@ -137,15 +138,33 @@ export class MaintenanceService {
 
   // Atualizar manutenção
   async updateMaintenance(maintenanceId: string, updates: Partial<Maintenance>): Promise<{ success: boolean; message: string }> {
-    try {
-      const maintenanceRef = doc(db, 'maintenances', maintenanceId);
-      await updateDoc(maintenanceRef, updates);
-      return { success: true, message: 'Manutenção atualizada com sucesso!' };
-    } catch (error: unknown) { // ← TIPAGEM EXPLÍCITA
-      console.error('Erro ao atualizar manutenção:', error);
-      return { success: false, message: 'Erro ao atualizar manutenção: ' + this.getErrorMessage(error) };
+  try {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      return { success: false, message: 'Usuário não autenticado' };
     }
+
+    // Verificar se a manutenção pertence ao usuário atual
+    const maintenanceRef = doc(db, 'maintenances', maintenanceId);
+    const maintenanceSnap = await getDoc(maintenanceRef);
+    
+    if (!maintenanceSnap.exists()) {
+      return { success: false, message: 'Manutenção não encontrada' };
+    }
+
+    const maintenanceData = maintenanceSnap.data();
+    if (maintenanceData['userId'] !== currentUser.uid) {
+      return { success: false, message: 'Você não tem permissão para editar esta manutenção' };
+    }
+
+    // Atualizar documento
+    await updateDoc(maintenanceRef, updates);
+    return { success: true, message: 'Manutenção atualizada com sucesso!' };
+  } catch (error: unknown) {
+    console.error('Erro ao atualizar manutenção:', error);
+    return { success: false, message: 'Erro ao atualizar manutenção: ' + this.getErrorMessage(error) };
   }
+}
 
   // Deletar manutenção
   async deleteMaintenance(maintenanceId: string): Promise<{ success: boolean; message: string }> {
@@ -247,4 +266,6 @@ export class MaintenanceService {
       return [];
     }
   }
+
+  
 }

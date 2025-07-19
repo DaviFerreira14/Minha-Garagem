@@ -87,6 +87,11 @@ small { color: #888888; }
   transform: translateY(-2px);
 }
 
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+}
+
 .btn-outline-danger {
   border: 2px solid #ef4444;
   color: #ef4444;
