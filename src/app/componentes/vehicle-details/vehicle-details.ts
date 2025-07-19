@@ -1,4 +1,3 @@
-// vehicle-details.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -16,7 +15,6 @@ import { AuthService } from '../../services/auth';
 })
 export class VehicleDetailsComponent implements OnInit, OnDestroy {
   
-  // Estados principais
   vehicle: Vehicle | null = null;
   isLoading = true;
   isDeleting = false;
@@ -39,7 +37,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     this.routeSubscription.unsubscribe();
   }
 
-  // ===== CARREGAMENTO =====
   private loadVehicleDetails(): void {
     this.routeSubscription = this.route.params.subscribe(params => {
       const vehicleId = params['id'];
@@ -53,7 +50,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
       
       if (!vehicle) return this.setError('Veículo não encontrado');
       
-      // Verificar permissão
       const currentUserId = this.authService.getUserId();
       if (vehicle.userId !== currentUserId) {
         return this.setError('Você não tem permissão para visualizar este veículo');
@@ -61,10 +57,7 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
 
       this.vehicle = vehicle;
       this.isLoading = false;
-      console.log('Veículo carregado:', vehicle.brand, vehicle.model);
-
     } catch (error) {
-      console.error('Erro ao carregar veículo:', error);
       this.setError('Erro ao carregar detalhes do veículo');
     }
   }
@@ -74,7 +67,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     this.isLoading = false;
   }
 
-  // ===== AÇÕES PRINCIPAIS =====
   editVehicle(): void {
     if (!this.vehicle?.id) return;
     this.router.navigate(['/vehicles', this.vehicle.id, 'edit']);
@@ -89,10 +81,8 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     
     try {
       await this.vehicleService.removeVehicle(this.vehicle.id);
-      console.log('Veículo removido com sucesso');
       this.router.navigate(['/dashboard']);
     } catch (error) {
-      console.error('Erro ao remover veículo:', error);
       alert('Erro ao remover veículo. Tente novamente.');
     } finally {
       this.isDeleting = false;
@@ -103,7 +93,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard']);
   }
 
-  // ===== DROPDOWN ACTIONS =====
   shareVehicle(): void {
     if (!this.vehicle) return;
     
@@ -112,7 +101,7 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
         title: `${this.getVehicleFullName()} - Minha Garagem`,
         text: `Confira meu ${this.getVehicleFullName()} na Minha Garagem`,
         url: window.location.href
-      }).catch(err => console.log('Erro ao compartilhar:', err));
+      });
     } else {
       navigator.clipboard.writeText(window.location.href).then(() => {
         alert('Link copiado para a área de transferência!');
@@ -122,51 +111,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ===== MANUTENÇÃO =====
-  addMaintenance(): void {
-    if (!this.vehicle) return;
-    
-    this.router.navigate(['/maintenance'], {
-      queryParams: { 
-        action: 'add',
-        vehicleId: this.vehicle.id
-      }
-    });
-  }
-
-  viewMaintenanceHistory(): void {
-    if (!this.vehicle) return;
-    
-    this.router.navigate(['/maintenance'], {
-      queryParams: { 
-        vehicleId: this.vehicle.id
-      }
-    });
-  }
-
-  // ===== GASTOS =====
-  addExpense(): void {
-    if (!this.vehicle) return;
-    
-    this.router.navigate(['/expenses'], {
-      queryParams: { 
-        action: 'add',
-        vehicleId: this.vehicle.id
-      }
-    });
-  }
-
-  viewExpenseHistory(): void {
-    if (!this.vehicle) return;
-    
-    this.router.navigate(['/expenses'], {
-      queryParams: { 
-        vehicleId: this.vehicle.id
-      }
-    });
-  }
-
-  // ===== FORMATAÇÃO E EXIBIÇÃO =====
   getVehicleFullName(): string {
     return this.vehicle 
       ? `${this.vehicle.brand} ${this.vehicle.model} ${this.vehicle.year}`
@@ -227,7 +171,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     }).format(dateObj);
   }
 
-  // ===== GETTERS =====
   get currentUser() {
     return this.authService.getCurrentUser();
   }
@@ -255,7 +198,6 @@ export class VehicleDetailsComponent implements OnInit, OnDestroy {
     return nextMaintenance;
   }
 
-  // ===== UTILITÁRIOS =====
   hasPhoto(): boolean {
     return !!(this.vehicle?.photo);
   }

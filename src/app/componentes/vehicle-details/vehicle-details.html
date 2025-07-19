@@ -1,7 +1,4 @@
-<!-- vehicle-details.component.html -->
 <div class="vehicle-details-container">
-  
-  <!-- Header -->
   <div class="details-header">
     <div class="container">
       <div class="row align-items-center">
@@ -51,16 +48,12 @@
     </div>
   </div>
 
-  <!-- Main Content -->
   <div class="container py-4">
-    
-    <!-- Loading State -->
     <div *ngIf="isLoading" class="loading-state">
       <div class="loading-spinner"></div>
       <p class="text-muted mt-3">Carregando detalhes do veículo...</p>
     </div>
 
-    <!-- Error State -->
     <div *ngIf="error && !isLoading" class="alert alert-danger">
       <i class="fas fa-exclamation-triangle me-2"></i>
       {{ error }}
@@ -71,10 +64,7 @@
       </div>
     </div>
 
-    <!-- Vehicle Details -->
     <div *ngIf="vehicle && !isLoading && !error">
-      
-      <!-- Vehicle Header -->
       <div class="vehicle-header">
         <div class="row align-items-center">
           <div class="col-md-8">
@@ -92,10 +82,7 @@
         </div>
       </div>
 
-      <!-- Vehicle Photo and Quick Stats -->
       <div class="row mb-4">
-        
-        <!-- Vehicle Photo -->
         <div class="col-lg-6 mb-4">
           <div class="vehicle-photo-card">
             <div class="vehicle-photo-container">
@@ -111,7 +98,6 @@
           </div>
         </div>
 
-        <!-- Quick Stats -->
         <div class="col-lg-6">
           <div class="row g-3">
             <div class="col-6">
@@ -162,7 +148,6 @@
         </div>
       </div>
 
-      <!-- Vehicle Specifications -->
       <div class="row mb-4">
         <div class="col-12">
           <div class="specifications-card">
@@ -232,7 +217,6 @@
         </div>
       </div>
 
-      <!-- Observations -->
       <div class="row mb-4" *ngIf="vehicle.observations">
         <div class="col-12">
           <div class="observations-card">
@@ -245,50 +229,6 @@
         </div>
       </div>
 
-      <!-- Action Cards -->
-      <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-          <div class="action-card">
-            <div class="action-icon maintenance-icon">
-              <i class="fas fa-wrench"></i>
-            </div>
-            <div class="action-content">
-              <h5>Manutenções</h5>
-              <p class="text-muted">Controle revisões, trocas de óleo e reparos</p>
-              <div class="action-buttons">
-                <button class="btn btn-sm btn-warning" (click)="addMaintenance()">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-                <button class="btn btn-sm btn-outline-warning" (click)="viewMaintenanceHistory()">
-                  <i class="fas fa-history me-1"></i>Histórico
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 mb-3">
-          <div class="action-card">
-            <div class="action-icon expenses-icon">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="action-content">
-              <h5>Gastos</h5>
-              <p class="text-muted">Registre combustível, peças e serviços</p>
-              <div class="action-buttons">
-                <button class="btn btn-sm btn-success" (click)="addExpense()">
-                  <i class="fas fa-plus me-1"></i>Adicionar
-                </button>
-                <button class="btn btn-sm btn-outline-success" (click)="viewExpenseHistory()">
-                  <i class="fas fa-chart-bar me-1"></i>Relatório
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vehicle Timeline -->
       <div class="row">
         <div class="col-12">
           <div class="timeline-card">
@@ -320,7 +260,6 @@
                 </div>
               </div>
               
-              <!-- Placeholder para futuras atividades -->
               <div class="timeline-item timeline-placeholder">
                 <div class="timeline-marker timeline-marker-placeholder">
                   <i class="fas fa-ellipsis-h"></i>
@@ -333,7 +272,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
