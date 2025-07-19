@@ -1,5 +1,5 @@
-// maintenance.component.ts - Simplified Dark Theme
-import { Component, OnInit } from '@angular/core';
+// maintenance.component.ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { MaintenanceService, Maintenance as MaintenanceModel, MaintenanceItem } from '../../services/maintenance';
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
+import { MaintenanceReminderService } from '../../services/maintenance-reminder';
 import { NavbarComponent } from '../navbar/navbar';
 import { FooterComponent } from '../footer/footer';
 
@@ -19,7 +20,7 @@ import { FooterComponent } from '../footer/footer';
   templateUrl: './maintenance.html',
   styleUrls: ['./maintenance.css']
 })
-export class MaintenanceComponent implements OnInit {
+export class MaintenanceComponent implements OnInit, OnDestroy {
   maintenanceForm!: FormGroup;
   maintenances: MaintenanceModel[] = [];
   filteredMaintenances: MaintenanceModel[] = [];
@@ -35,7 +36,6 @@ export class MaintenanceComponent implements OnInit {
   selectedTypeFilter = '';
   minDate = '';
 
-  // Estados do modal de exclusão
   showDeleteConfirm = false;
   maintenanceToDelete: MaintenanceModel | null = null;
   isDeleting = false;
@@ -45,7 +45,8 @@ export class MaintenanceComponent implements OnInit {
     private router: Router,
     private maintenanceService: MaintenanceService,
     private vehicleService: VehicleService,
-    private authService: AuthService
+    private authService: AuthService,
+    private reminderService: MaintenanceReminderService
   ) {}
 
   ngOnInit(): void {
@@ -53,6 +54,11 @@ export class MaintenanceComponent implements OnInit {
     this.loadVehicles();
     this.loadMaintenances();
     this.setMinDate();
+    this.reminderService.startReminderSystem();
+  }
+
+  ngOnDestroy(): void {
+    this.reminderService.stopReminderSystem();
   }
 
   private setMinDate(): void {
@@ -129,9 +135,9 @@ export class MaintenanceComponent implements OnInit {
           const today = new Date();
           const diffDays = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
           
-          if (diffDays <= 7) return '⚡ Manutenção próxima - Não esqueça de se preparar!';
+          if (diffDays <= 7) return '⚡ Manutenção próxima - Você receberá lembretes por email!';
           if (diffDays > 365) return '⚠️ Data muito distante - Confirme se está correto';
-          return '📅 Manutenção agendada com sucesso';
+          return '📅 Manutenção agendada - Lembretes automáticos ativados!';
         }
         return 'Selecione uma data atual ou futura para a manutenção';
       case 'realizada':
@@ -199,7 +205,6 @@ export class MaintenanceComponent implements OnInit {
     try {
       this.vehicles = await firstValueFrom(this.vehicleService.getVehicles());
     } catch (error) {
-      console.error('Erro ao carregar veículos:', error);
       this.errorMessage = 'Erro ao carregar veículos';
     }
   }
@@ -210,7 +215,6 @@ export class MaintenanceComponent implements OnInit {
       this.maintenances = await this.maintenanceService.getUserMaintenances();
       this.filterMaintenances();
     } catch (error) {
-      console.error('Erro ao carregar manutenções:', error);
       this.errorMessage = 'Erro ao carregar manutenções';
     } finally {
       this.isLoadingMaintenances = false;
@@ -276,15 +280,25 @@ export class MaintenanceComponent implements OnInit {
         const result = await this.maintenanceService.addMaintenance(maintenance);
 
         if (result.success) {
-          this.successMessage = result.message;
+          if (formValue.type === 'agendada') {
+            this.successMessage = `${result.message} Você receberá lembretes por email 3 dias antes e no dia da manutenção.`;
+          } else {
+            this.successMessage = result.message;
+          }
+          
           this.resetForm();
           this.showAddForm = false;
           await this.loadMaintenances();
+          
+          if (formValue.type === 'agendada') {
+            setTimeout(() => {
+              this.reminderService.forceCheckReminders();
+            }, 2000);
+          }
         } else {
           this.errorMessage = result.message;
         }
       } catch (error) {
-        console.error('Erro ao salvar manutenção:', error);
         this.errorMessage = 'Erro inesperado ao salvar manutenção';
       } finally {
         this.isLoading = false;
@@ -325,18 +339,9 @@ export class MaintenanceComponent implements OnInit {
         this.errorMessage = result.message;
       }
     } catch (error) {
-      console.error('Erro ao deletar manutenção:', error);
       this.errorMessage = 'Erro ao deletar manutenção';
     } finally {
       this.isDeleting = false;
-    }
-  }
-
-  async deleteMaintenance(maintenanceId: string): Promise<void> {
-    // Método mantido para compatibilidade, mas agora usa o modal
-    const maintenance = this.maintenances.find(m => m.id === maintenanceId);
-    if (maintenance) {
-      this.showDeleteModal(maintenance);
     }
   }
 

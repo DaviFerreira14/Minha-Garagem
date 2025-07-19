@@ -1,11 +1,10 @@
-<!-- maintenance.component.html -->
+<!-- maintenance.component.html-->
 <div class="maintenance-container">
   
-  <!-- Navbar Component -->
   <app-navbar></app-navbar>
   
-  <!-- Conteúdo Principal -->
   <div class="container mt-4">
+    
     <!-- Header -->
     <div class="row mb-4">
       <div class="col-12 col-md-8 mb-3 mb-md-0">
@@ -57,6 +56,7 @@
           <div class="card-body">
             <form [formGroup]="maintenanceForm" (ngSubmit)="onSubmit()">
               <div class="row">
+                
                 <!-- Veículo -->
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Veículo *</label>
@@ -87,12 +87,7 @@
                 <!-- Título -->
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Título da Manutenção *</label>
-                  <input 
-                    type="text" 
-                    class="form-control" 
-                    formControlName="title"
-                    placeholder="Ex: Revisão de 10.000 km"
-                    [class.is-invalid]="isFieldInvalid('title')">
+                  <input type="text" class="form-control" formControlName="title" placeholder="Ex: Revisão de 10.000 km" [class.is-invalid]="isFieldInvalid('title')">
                   <div class="invalid-feedback" *ngIf="isFieldInvalid('title')">
                     Digite um título para a manutenção
                   </div>
@@ -101,21 +96,12 @@
                 <!-- Data -->
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Data *</label>
-                  <input 
-                    type="date" 
-                    class="form-control" 
-                    formControlName="date"
-                    [min]="getMinDate()"
-                    [max]="getMaxDate()"
-                    [class.is-invalid]="isFieldInvalid('date')"
-                    [class.is-valid]="maintenanceForm.get('date')?.valid && maintenanceForm.get('date')?.touched">
+                  <input type="date" class="form-control" formControlName="date" [min]="getMinDate()" [max]="getMaxDate()" [class.is-invalid]="isFieldInvalid('date')" [class.is-valid]="maintenanceForm.get('date')?.valid && maintenanceForm.get('date')?.touched">
                   
-                  <!-- Mensagens de erro específicas -->
                   <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
                     {{ getDateErrorMessage() }}
                   </div>
                   
-                  <!-- Texto de ajuda -->
                   <div class="form-text" *ngIf="!isFieldInvalid('date') && maintenanceForm.get('type')?.value">
                     <small class="text-muted">
                       <i class="fas fa-info-circle me-1"></i>
@@ -128,34 +114,19 @@
                 <div class="col-12 mb-3">
                   <label class="form-label">Itens da Manutenção</label>
                   <div formArrayName="items">
-                    <div *ngFor="let item of getItemsControls(); let i = index" 
-                         [formGroupName]="i" 
-                         class="border rounded p-3 mb-2 bg-light">
+                    <div *ngFor="let item of getItemsControls(); let i = index" [formGroupName]="i" class="border rounded p-3 mb-2 bg-light">
                       <div class="row">
                         <div class="col-md-6 mb-2">
-                          <input 
-                            type="text" 
-                            class="form-control" 
-                            formControlName="description"
-                            placeholder="Ex: Troca de óleo">
+                          <input type="text" class="form-control" formControlName="description" placeholder="Ex: Troca de óleo">
                         </div>
                         <div class="col-md-4 mb-2">
                           <div class="input-group">
                             <span class="input-group-text">R$</span>
-                            <input 
-                              type="number" 
-                              class="form-control" 
-                              formControlName="cost"
-                              placeholder="0,00"
-                              step="0.01">
+                            <input type="number" class="form-control" formControlName="cost" placeholder="0,00" step="0.01">
                           </div>
                         </div>
                         <div class="col-md-2 mb-2">
-                          <button 
-                            type="button" 
-                            class="btn btn-outline-danger w-100"
-                            (click)="removeItem(i)"
-                            [disabled]="getItemsControls().length === 1">
+                          <button type="button" class="btn btn-outline-danger w-100" (click)="removeItem(i)" [disabled]="getItemsControls().length === 1">
                             <i class="fas fa-trash"></i>
                           </button>
                         </div>
@@ -172,11 +143,7 @@
                 <!-- Observações -->
                 <div class="col-12 mb-3">
                   <label class="form-label">Observações</label>
-                  <textarea 
-                    class="form-control" 
-                    formControlName="notes"
-                    rows="3"
-                    placeholder="Observações adicionais sobre a manutenção..."></textarea>
+                  <textarea class="form-control" formControlName="notes" rows="3" placeholder="Observações adicionais sobre a manutenção..."></textarea>
                 </div>
 
                 <!-- Total -->
@@ -224,6 +191,7 @@
     <!-- Lista de Manutenções -->
     <div class="row">
       <div class="col-12">
+        
         <!-- Loading -->
         <div class="text-center py-5" *ngIf="isLoadingMaintenances">
           <div class="spinner-border text-primary" role="status">
@@ -254,17 +222,12 @@
         <div class="row" *ngIf="!isLoadingMaintenances && filteredMaintenances.length > 0">
           <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let maintenance of filteredMaintenances">
             <div class="card h-100 maintenance-card" [class.border-success]="maintenance.type === 'realizada'" [class.border-warning]="maintenance.type === 'agendada'">
-              <div class="card-header d-flex justify-content-between align-items-center" 
-                   [class.bg-success]="maintenance.type === 'realizada'" 
-                   [class.bg-warning]="maintenance.type === 'agendada'">
+              <div class="card-header d-flex justify-content-between align-items-center" [class.bg-success]="maintenance.type === 'realizada'" [class.bg-warning]="maintenance.type === 'agendada'">
                 <h6 class="mb-0">
                   <i class="fas fa-wrench me-2"></i>
                   {{ maintenance.title }}
                 </h6>
-                <span class="badge" 
-                      [class.bg-light]="maintenance.type === 'realizada'"
-                      [class.bg-dark]="maintenance.type === 'agendada'"
-                      [class.text-dark]="maintenance.type === 'realizada'">
+                <span class="badge" [class.bg-light]="maintenance.type === 'realizada'" [class.bg-dark]="maintenance.type === 'agendada'" [class.text-dark]="maintenance.type === 'realizada'">
                   {{ maintenance.type === 'realizada' ? 'Realizada' : 'Agendada' }}
                 </span>
               </div>
@@ -312,7 +275,6 @@
     </div>
   </div>
 
-  <!-- Footer Component -->
   <app-footer></app-footer>
 
   <!-- Modal de Confirmação de Exclusão -->
@@ -329,10 +291,7 @@
         <div class="maintenance-info-modal" *ngIf="maintenanceToDelete">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <strong>{{ maintenanceToDelete.title }}</strong>
-            <span class="badge" 
-                  [class.bg-success]="maintenanceToDelete.type === 'realizada'"
-                  [class.bg-warning]="maintenanceToDelete.type === 'agendada'"
-                  [class.text-dark]="maintenanceToDelete.type === 'agendada'">
+            <span class="badge" [class.bg-success]="maintenanceToDelete.type === 'realizada'" [class.bg-warning]="maintenanceToDelete.type === 'agendada'" [class.text-dark]="maintenanceToDelete.type === 'agendada'">
               {{ maintenanceToDelete.type === 'realizada' ? 'Realizada' : 'Agendada' }}
             </span>
           </div>

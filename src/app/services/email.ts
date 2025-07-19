@@ -1,4 +1,4 @@
-// src/app/services/email.ts - VERSÃO COMPLETA CORRIGIDA
+// src/app/services/email.ts
 import { Injectable } from '@angular/core';
 import emailjs from '@emailjs/browser';
 import { Maintenance } from './maintenance';
@@ -7,137 +7,109 @@ import { Maintenance } from './maintenance';
   providedIn: 'root'
 })
 export class EmailService {
-  
-  // SUAS CHAVES DO EMAILJS
-  private serviceId = 'service_9whkq7j';     
-  private templateId = 'template_6qrvxpv';    
-  private publicKey = 'lAqb6B3bzGcEnul-W';    
+  private serviceId = 'service_9whkq7j';
+  private templateId = 'template_6qrvxpv';
+  private publicKey = 'lAqb6B3bzGcEnul-W';
+  private isInitialized = false;
 
   constructor() {
-    // Inicializar EmailJS
-    emailjs.init(this.publicKey);
-    console.log('📧 EmailJS inicializado');
+    this.initializeEmailJS();
   }
 
-  // Enviar lembrete de manutenção
-  async sendMaintenanceReminder(
-    maintenance: Maintenance, 
-    userEmail: string, 
-    userName: string
-  ): Promise<boolean> {
+  private async initializeEmailJS(): Promise<void> {
     try {
-      // Função para formatar data corretamente
-      const formatDateCorrectly = (date: Date): string => {
-        // Garantir que estamos trabalhando com o fuso horário local
-        const localDate = new Date(date);
-        const day = String(localDate.getDate()).padStart(2, '0');
-        const month = String(localDate.getMonth() + 1).padStart(2, '0');
-        const year = localDate.getFullYear();
-        return `${day}/${month}/${year}`;
-      };
+      if (typeof emailjs === 'undefined') return;
+      emailjs.init(this.publicKey);
+      this.isInitialized = true;
+    } catch (error) {
+      this.isInitialized = false;
+    }
+  }
 
+  async sendMaintenanceReminder(maintenance: Maintenance, userEmail: string, userName: string): Promise<boolean> {
+    if (!this.isInitialized || !this.isConfigured()) return false;
+
+    try {
       const templateParams = {
         to_email: userEmail,
         to_name: userName,
         maintenance_title: maintenance.title,
         vehicle_name: maintenance.vehicleName,
-        maintenance_date: formatDateCorrectly(maintenance.date),
+        maintenance_date: this.formatDateForEmail(maintenance.date),
         total_cost: maintenance.totalCost.toFixed(2),
-        items_list: this.formatItemsList(maintenance.items), // ← MÉTODO CORRIGIDO
+        items_list: this.formatItemsList(maintenance.items),
         notes: maintenance.notes || 'Nenhuma observação especial',
         current_year: new Date().getFullYear()
       };
 
-      console.log('📤 Enviando email para manutenção:', {
-        title: maintenance.title,
-        date: templateParams.maintenance_date,
-        vehicle: maintenance.vehicleName
-      });
-
-      const response = await emailjs.send(
-        this.serviceId,
-        this.templateId,
-        templateParams
-      );
-
-      console.log('✅ Email enviado com sucesso');
-      return true;
+      const response = await emailjs.send(this.serviceId, this.templateId, templateParams);
+      return response.status === 200;
     } catch (error) {
-      console.error('❌ Erro ao enviar email:', error);
       return false;
     }
   }
 
-  // MÉTODO FORMATITEMSLIST - CORRIGIDO E ADICIONADO
-  private formatItemsList(items: any[]): string {
-    if (!items || items.length === 0) {
-      return 'Nenhum item especificado';
-    }
-    
-    return items.map(item => 
-      `• ${item.description} - R$ ${item.cost.toFixed(2)}`
-    ).join('\n');
-  }
-
-  // Enviar email de teste
   async sendTestEmail(email: string, name: string): Promise<boolean> {
+    if (!this.isInitialized) {
+      await this.reinitialize();
+      if (!this.isInitialized) return false;
+    }
+
     try {
-      const today = new Date();
-      const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-      
       const templateParams = {
         to_email: email,
         to_name: name,
-        maintenance_title: 'Teste do Sistema',
+        maintenance_title: 'Teste do Sistema de Lembretes',
         vehicle_name: 'Honda Civic 2020 (Teste)',
-        maintenance_date: formattedDate,
+        maintenance_date: this.formatDateForEmail(new Date()),
         total_cost: '150.00',
-        items_list: '• Teste de envio de email - R$ 150,00',
+        items_list: 'Teste de envio de email - R$ 150,00',
         notes: 'Este é um email de teste para verificar se o sistema está funcionando.',
         current_year: new Date().getFullYear()
       };
 
-      await emailjs.send(
-        this.serviceId,
-        this.templateId,
-        templateParams
-      );
-
-      console.log('✅ Email de teste enviado');
-      return true;
+      const response = await emailjs.send(this.serviceId, this.templateId, templateParams);
+      return response.status === 200;
     } catch (error) {
-      console.error('❌ Erro no email de teste:', error);
       return false;
     }
   }
 
-  // Verificar se EmailJS está configurado
-  isConfigured(): boolean {
-    // Verificar se as chaves não estão vazias e não são os valores padrão antigos
-    const isServiceIdValid = Boolean(this.serviceId && 
-                                    this.serviceId !== 'YOUR_SERVICE_ID' && 
-                                    this.serviceId.startsWith('service_'));
-    
-    const isTemplateIdValid = Boolean(this.templateId && 
-                                     this.templateId !== 'YOUR_TEMPLATE_ID' && 
-                                     this.templateId.startsWith('template_'));
-    
-    const isPublicKeyValid = Boolean(this.publicKey && 
-                                    this.publicKey !== 'YOUR_PUBLIC_KEY' && 
-                                    this.publicKey.length > 10);
-
-    const configured = isServiceIdValid && isTemplateIdValid && isPublicKeyValid;
-    
-    return configured;
+  private formatDateForEmail(date: Date): string {
+    const localDate = new Date(date);
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const year = localDate.getFullYear();
+    return `${day}/${month}/${year}`;
   }
 
-  // Método para debug (opcional)
+  private formatItemsList(items: any[]): string {
+    if (!items || items.length === 0) return 'Nenhum item especificado';
+    return items.map(item => `• ${item.description} - R$ ${Number(item.cost).toFixed(2)}`).join('\n');
+  }
+
+  isConfigured(): boolean {
+    return Boolean(
+      this.serviceId && this.serviceId.startsWith('service_') &&
+      this.templateId && this.templateId.startsWith('template_') &&
+      this.publicKey && this.publicKey.length > 15
+    );
+  }
+
+  isEmailJSInitialized(): boolean {
+    return this.isInitialized;
+  }
+
   getConfigurationStatus(): any {
     return {
-      serviceId: this.serviceId,
-      templateId: this.templateId,
-      publicKey: this.publicKey.substring(0, 10) + '...',
-      isConfigured: this.isConfigured()
+      isInitialized: this.isInitialized,
+      isConfigured: this.isConfigured(),
+      emailJSAvailable: typeof emailjs !== 'undefined'
     };
+  }
+
+  async reinitialize(): Promise<void> {
+    this.isInitialized = false;
+    await this.initializeEmailJS();
   }
 }
