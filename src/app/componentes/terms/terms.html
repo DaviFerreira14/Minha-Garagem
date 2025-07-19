@@ -1,0 +1,199 @@
+<!-- terms.component.html -->
+<div class="terms-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <button class="btn btn-outline-secondary" (click)="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>
+            Voltar
+          </button>
+        </div>
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+              <li class="breadcrumb-item">
+                <a href="#" (click)="goHome(); $event.preventDefault()">Início</a>
+              </li>
+              <li class="breadcrumb-item active">Termos de Uso</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-auto">
+          <span class="last-updated">Atualizado em: {{ lastUpdated }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    
+    <!-- Title Section -->
+    <div class="title-section">
+      <h1 class="page-title">
+        <i class="fas fa-file-contract me-3"></i>
+        Termos de Uso
+      </h1>
+      <p class="page-subtitle">
+        Leia atentamente os termos e condições para usar nossos serviços
+      </p>
+    </div>
+
+    <!-- Content -->
+    <div class="content-card">
+      
+      <!-- Introduction -->
+      <section class="terms-section">
+        <h2>1. Introdução</h2>
+        <p>
+          Bem-vindo ao <strong>Minha Garagem</strong>. Estes Termos de Uso ("Termos") regem o uso do nosso aplicativo 
+          e serviços relacionados. Ao acessar ou usar nosso aplicativo, você concorda em ficar vinculado a estes Termos.
+        </p>
+        <p>
+          Se você não concordar com qualquer parte destes termos, não deve usar nosso aplicativo.
+        </p>
+      </section>
+
+      <!-- Service Description -->
+      <section class="terms-section">
+        <h2>2. Descrição do Serviço</h2>
+        <p>
+          O <strong>Minha Garagem</strong> é um aplicativo de gerenciamento de veículos que permite:
+        </p>
+        <ul>
+          <li>Cadastrar e gerenciar informações de seus veículos</li>
+          <li>Controlar manutenções e revisões</li>
+          <li>Registrar e acompanhar gastos relacionados aos veículos</li>
+          <li>Gerar relatórios e estatísticas de uso</li>
+          <li>Armazenar fotos e documentos dos veículos</li>
+        </ul>
+      </section>
+
+      <!-- User Accounts -->
+      <section class="terms-section">
+        <h2>3. Contas de Usuário</h2>
+        <div class="subsection">
+          <h3>3.1 Criação de Conta</h3>
+          <p>
+            Para usar nosso serviço, você deve criar uma conta fornecendo informações precisas, 
+            completas e atualizadas. Você é responsável por manter a confidencialidade de suas 
+            credenciais de login.
+          </p>
+        </div>
+        <div class="subsection">
+          <h3>3.2 Responsabilidade da Conta</h3>
+          <p>
+            Você é totalmente responsável por todas as atividades que ocorrem em sua conta. 
+            Notifique-nos imediatamente sobre qualquer uso não autorizado de sua conta.
+          </p>
+        </div>
+      </section>
+
+      <!-- Acceptable Use -->
+      <section class="terms-section">
+        <h2>4. Uso Aceitável</h2>
+        <p>Ao usar nosso serviço, você concorda em <strong>NÃO</strong>:</p>
+        <ul class="prohibited-list">
+          <li>Usar o serviço para qualquer propósito ilegal ou não autorizado</li>
+          <li>Tentar acessar dados de outros usuários</li>
+          <li>Interferir ou interromper o funcionamento do serviço</li>
+          <li>Enviar spam, malware ou conteúdo malicioso</li>
+          <li>Violar direitos de propriedade intelectual</li>
+          <li>Usar dados falsos ou enganosos</li>
+        </ul>
+      </section>
+
+      <!-- Privacy and Data -->
+      <section class="terms-section">
+        <h2>5. Privacidade e Dados</h2>
+        <p>
+          Sua privacidade é importante para nós. Nossa coleta e uso de informações pessoais 
+          são regidos por nossa <a href="#" (click)="goToPrivacyPolicy(); $event.preventDefault()" class="link">Política de Privacidade</a>, 
+          que está incorporada a estes Termos por referência.
+        </p>
+        <div class="info-box">
+          <i class="fas fa-shield-alt"></i>
+          <div>
+            <strong>Proteção de Dados:</strong> Todos os seus dados são criptografados e armazenados 
+            com segurança. Nunca compartilhamos suas informações pessoais com terceiros sem seu consentimento.
+          </div>
+        </div>
+      </section>
+
+      <!-- Intellectual Property -->
+      <section class="terms-section">
+        <h2>6. Propriedade Intelectual</h2>
+        <p>
+          O aplicativo <strong>Minha Garagem</strong> e todo o seu conteúdo, incluindo mas não limitado a 
+          texto, gráficos, logotipos, ícones, imagens, e software, são propriedade nossa ou de nossos 
+          licenciadores e são protegidos por direitos autorais e outras leis de propriedade intelectual.
+        </p>
+      </section>
+
+      <!-- Disclaimers -->
+      <section class="terms-section">
+        <h2>7. Isenções de Responsabilidade</h2>
+        <div class="warning-box">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>
+            <strong>Uso por Sua Conta e Risco:</strong> O serviço é fornecido "como está" e "conforme disponível". 
+            Não garantimos que o serviço será ininterrupto, livre de erros ou completamente seguro.
+          </div>
+        </div>
+        <p>
+          Não nos responsabilizamos por:
+        </p>
+        <ul>
+          <li>Perda de dados devido a falhas técnicas</li>
+          <li>Decisões tomadas com base nas informações do aplicativo</li>
+          <li>Danos indiretos ou consequenciais</li>
+          <li>Conteúdo de terceiros</li>
+        </ul>
+      </section>
+
+      <!-- Service Modifications -->
+      <section class="terms-section">
+        <h2>8. Modificações do Serviço</h2>
+        <p>
+          Reservamos o direito de modificar, suspender ou descontinuar qualquer parte do serviço 
+          a qualquer momento, com ou sem aviso prévio. Não seremos responsáveis por você ou 
+          terceiros por qualquer modificação, suspensão ou descontinuação do serviço.
+        </p>
+      </section>
+
+      <!-- Termination -->
+      <section class="terms-section">
+        <h2>9. Rescisão</h2>
+        <p>
+          Podemos rescindir ou suspender sua conta e acesso ao serviço imediatamente, sem aviso prévio, 
+          por qualquer motivo, incluindo violação destes Termos. Você pode encerrar sua conta a qualquer 
+          momento excluindo sua conta nas configurações do aplicativo.
+        </p>
+      </section>
+
+      <!-- Changes to Terms -->
+      <section class="terms-section">
+        <h2>10. Alterações nos Termos</h2>
+        <p>
+          Podemos atualizar estes Termos periodicamente. Quando fizermos alterações materiais, 
+          notificaremos você por e-mail ou através de uma notificação em nosso serviço. 
+          O uso continuado do serviço após tais alterações constitui sua aceitação dos novos Termos.
+        </p>
+      </section>
+
+      <!-- Governing Law -->
+      <section class="terms-section">
+        <h2>11. Lei Aplicável</h2>
+        <p>
+          Estes Termos são regidos pelas leis da República Federativa do Brasil. 
+          Qualquer disputa será resolvida nos tribunais competentes do Brasil.
+        </p>
+      </section>
+
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,309 @@
+<!-- privacy-policy.component.html -->
+<div class="privacy-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <button class="btn btn-outline-secondary" (click)="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>
+            Voltar
+          </button>
+        </div>
+        <div class="col">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+              <li class="breadcrumb-item">
+                <a href="#" (click)="goHome(); $event.preventDefault()">Início</a>
+              </li>
+              <li class="breadcrumb-item active">Política de Privacidade</li>
+            </ol>
+          </nav>
+        </div>
+        <div class="col-auto">
+          <span class="last-updated">Atualizado em: {{ lastUpdated }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container py-4">
+    
+    <!-- Title Section -->
+    <div class="title-section">
+      <h1 class="page-title">
+        <i class="fas fa-user-shield me-3"></i>
+        Política de Privacidade
+      </h1>
+      <p class="page-subtitle">
+        Como coletamos, usamos e protegemos suas informações pessoais
+      </p>
+    </div>
+
+    <!-- Content -->
+    <div class="content-card">
+      
+      <!-- Introduction -->
+      <section class="privacy-section">
+        <h2>1. Introdução</h2>
+        <p>
+          No <strong>Minha Garagem</strong>, respeitamos sua privacidade e estamos comprometidos em proteger 
+          suas informações pessoais. Esta Política de Privacidade explica como coletamos, usamos, 
+          armazenamos e protegemos suas informações quando você usa nosso aplicativo.
+        </p>
+        <div class="highlight-box">
+          <i class="fas fa-heart"></i>
+          <div>
+            <strong>Compromisso com a Privacidade:</strong> Sua privacidade é fundamental para nós. 
+            Nunca vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros para fins comerciais.
+          </div>
+        </div>
+      </section>
+
+      <!-- Information We Collect -->
+      <section class="privacy-section">
+        <h2>2. Informações que Coletamos</h2>
+        
+        <div class="subsection">
+          <h3>2.1 Informações que Você Fornece</h3>
+          <ul>
+            <li><strong>Informações de Conta:</strong> Nome, e-mail, senha</li>
+            <li><strong>Dados dos Veículos:</strong> Marca, modelo, ano, placa, quilometragem, fotos</li>
+            <li><strong>Registros de Manutenção:</strong> Datas, tipos de serviço, custos, observações</li>
+            <li><strong>Informações de Gastos:</strong> Valores, categorias, datas, notas</li>
+            <li><strong>Fotos:</strong> Imagens dos veículos que você escolhe fazer upload</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <h3>2.2 Informações Coletadas Automaticamente</h3>
+          <ul>
+            <li><strong>Dados de Uso:</strong> Como você interage com o aplicativo</li>
+            <li><strong>Informações do Dispositivo:</strong> Tipo de dispositivo, sistema operacional</li>
+            <li><strong>Dados de Localização:</strong> Somente se você conceder permissão explícita</li>
+            <li><strong>Logs do Sistema:</strong> Para diagnóstico e melhoria do serviço</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- How We Use Information -->
+      <section class="privacy-section">
+        <h2>3. Como Usamos Suas Informações</h2>
+        <p>Utilizamos suas informações para:</p>
+        
+        <div class="purpose-grid">
+          <div class="purpose-item">
+            <i class="fas fa-cogs"></i>
+            <h4>Fornecer o Serviço</h4>
+            <p>Operar e manter o aplicativo, processar seus dados de veículos e gerar relatórios</p>
+          </div>
+          
+          <div class="purpose-item">
+            <i class="fas fa-chart-line"></i>
+            <h4>Melhorar a Experiência</h4>
+            <p>Personalizar sua experiência e desenvolver novos recursos baseados no uso</p>
+          </div>
+          
+          <div class="purpose-item">
+            <i class="fas fa-headset"></i>
+            <h4>Suporte ao Cliente</h4>
+            <p>Responder às suas perguntas e resolver problemas técnicos</p>
+          </div>
+          
+          <div class="purpose-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>Segurança</h4>
+            <p>Proteger contra fraudes, abusos e atividades maliciosas</p>
+          </div>
+          
+          <div class="purpose-item">
+            <i class="fas fa-bell"></i>
+            <h4>Comunicações</h4>
+            <p>Enviar notificações importantes sobre o serviço e atualizações</p>
+          </div>
+          
+          <div class="purpose-item">
+            <i class="fas fa-balance-scale"></i>
+            <h4>Conformidade Legal</h4>
+            <p>Cumprir obrigações legais e regulamentares aplicáveis</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Information Sharing -->
+      <section class="privacy-section">
+        <h2>4. Compartilhamento de Informações</h2>
+        <p>
+          <strong>Não vendemos suas informações pessoais.</strong> Podemos compartilhar suas informações apenas nas seguintes situações:
+        </p>
+        
+        <div class="sharing-scenarios">
+          <div class="scenario">
+            <h4><i class="fas fa-user-tie"></i> Provedores de Serviço</h4>
+            <p>Com terceiros que nos ajudam a operar o aplicativo (hospedagem, análise, suporte), sempre sob acordos de confidencialidade.</p>
+          </div>
+          
+          <div class="scenario">
+            <h4><i class="fas fa-gavel"></i> Requisitos Legais</h4>
+            <p>Quando exigido por lei, ordem judicial ou para proteger direitos, propriedade ou segurança.</p>
+          </div>
+          
+          <div class="scenario">
+            <h4><i class="fas fa-handshake"></i> Transações Comerciais</h4>
+            <p>Em caso de fusão, aquisição ou venda de ativos, com proteções adequadas para seus dados.</p>
+          </div>
+          
+          <div class="scenario">
+            <h4><i class="fas fa-check-circle"></i> Com Seu Consentimento</h4>
+            <p>Em qualquer outra situação, apenas com sua autorização explícita.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Security -->
+      <section class="privacy-section">
+        <h2>5. Segurança dos Dados</h2>
+        <p>
+          Implementamos medidas de segurança técnicas e organizacionais para proteger suas informações:
+        </p>
+        
+        <div class="security-measures">
+          <div class="security-item">
+            <i class="fas fa-lock"></i>
+            <h4>Criptografia</h4>
+            <p>Todos os dados são criptografados em trânsito e em repouso usando padrões da indústria</p>
+          </div>
+          
+          <div class="security-item">
+            <i class="fas fa-server"></i>
+            <h4>Infraestrutura Segura</h4>
+            <p>Servidores protegidos com firewalls, monitoramento 24/7 e controles de acesso rigorosos</p>
+          </div>
+          
+          <div class="security-item">
+            <i class="fas fa-user-check"></i>
+            <h4>Acesso Limitado</h4>
+            <p>Apenas funcionários autorizados têm acesso aos dados, com princípio de menor privilégio</p>
+          </div>
+          
+          <div class="security-item">
+            <i class="fas fa-clipboard-check"></i>
+            <h4>Auditorias Regulares</h4>
+            <p>Revisões periódicas de segurança e testes de penetração por empresas especializadas</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Your Rights -->
+      <section class="privacy-section">
+        <h2>6. Seus Direitos</h2>
+        <p>Você tem os seguintes direitos sobre suas informações pessoais:</p>
+        
+        <div class="rights-list">
+          <div class="right-item">
+            <i class="fas fa-eye"></i>
+            <div>
+              <h4>Direito de Acesso</h4>
+              <p>Solicitar uma cópia de todas as informações pessoais que temos sobre você</p>
+            </div>
+          </div>
+          
+          <div class="right-item">
+            <i class="fas fa-edit"></i>
+            <div>
+              <h4>Direito de Correção</h4>
+              <p>Corrigir informações imprecisas ou incompletas</p>
+            </div>
+          </div>
+          
+          <div class="right-item">
+            <i class="fas fa-trash"></i>
+            <div>
+              <h4>Direito de Exclusão</h4>
+              <p>Solicitar a exclusão de suas informações pessoais</p>
+            </div>
+          </div>
+          
+          <div class="right-item">
+            <i class="fas fa-ban"></i>
+            <div>
+              <h4>Direito de Limitação</h4>
+              <p>Limitar o processamento de suas informações em certas circunstâncias</p>
+            </div>
+          </div>
+          
+          <div class="right-item">
+            <i class="fas fa-download"></i>
+            <div>
+              <h4>Portabilidade de Dados</h4>
+              <p>Receber suas informações em formato estruturado e legível por máquina</p>
+            </div>
+          </div>
+          
+          <div class="right-item">
+            <i class="fas fa-times-circle"></i>
+            <div>
+              <h4>Direito de Oposição</h4>
+              <p>Opor-se ao processamento de suas informações para certas finalidades</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Retention -->
+      <section class="privacy-section">
+        <h2>7. Retenção de Dados</h2>
+        <p>
+          Mantemos suas informações pessoais apenas pelo tempo necessário para cumprir as finalidades 
+          descritas nesta política, a menos que um período de retenção mais longo seja exigido ou 
+          permitido por lei.
+        </p>
+        <div class="retention-info">
+          <div class="retention-item">
+            <strong>Dados da Conta:</strong> Até você excluir sua conta
+          </div>
+          <div class="retention-item">
+            <strong>Dados dos Veículos:</strong> Até você remover os veículos ou excluir sua conta
+          </div>
+          <div class="retention-item">
+            <strong>Logs do Sistema:</strong> Até 90 dias para fins de segurança e diagnóstico
+          </div>
+        </div>
+      </section>
+
+      <!-- Children's Privacy -->
+      <section class="privacy-section">
+        <h2>8. Privacidade de Menores</h2>
+        <p>
+          Nosso serviço não se destina a menores de 18 anos. Não coletamos intencionalmente 
+          informações pessoais de menores de 18 anos. Se tomarmos conhecimento de que coletamos 
+          informações de um menor, tomaremos medidas para excluir essas informações.
+        </p>
+      </section>
+
+      <!-- Policy Changes -->
+      <section class="privacy-section">
+        <h2>9. Alterações nesta Política</h2>
+        <p>
+          Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos você sobre 
+          alterações significativas por e-mail ou através de uma notificação no aplicativo. 
+          Recomendamos que revise esta política regularmente.
+        </p>
+      </section>
+
+      <!-- Contact -->
+      <section class="privacy-section">
+        <h2>9. Alterações nesta Política</h2>
+        <p>
+          Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos você sobre 
+          alterações significativas por e-mail ou através de uma notificação no aplicativo. 
+          Recomendamos que revise esta política regularmente.
+        </p>
+      </section>
+
+    </div>
+
+  </div>
+</div>

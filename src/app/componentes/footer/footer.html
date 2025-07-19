@@ -1,1 +1,25 @@
-<p>footer works!</p>
+<!-- footer.component.html -->
+<footer class="footer">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <div class="footer-brand">
+          <i class="fas fa-car me-2"></i>
+          <span class="fw-bold">Minha Garagem</span>
+        </div>
+        <p class="footer-text mb-0">
+          Gerencie seus veículos com facilidade e segurança.
+        </p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <div class="footer-links mb-2">
+          <a href="#" class="footer-link me-3" (click)="goToPrivacyPolicy(); $event.preventDefault()">Política de Privacidade</a>
+          <a href="#" class="footer-link me-3" (click)="goToTerms(); $event.preventDefault()">Termos de Uso</a>
+        </div>
+        <p class="footer-copyright mb-0">
+          © {{ currentYear }} Minha Garagem. Todos os direitos reservados.
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>

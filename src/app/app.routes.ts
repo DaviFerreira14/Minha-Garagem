@@ -9,6 +9,8 @@ import { VehicleDetailsComponent } from './componentes/vehicle-details/vehicle-d
 import { MaintenanceComponent } from './componentes/maintenance/maintenance';
 import { ExpensesComponent } from './componentes/expenses/expenses';
 import { authGuard } from './guards/auth-guard';
+import { TermsComponent } from './componentes/terms/terms';
+import { PrivacyPolicyComponent } from './componentes/privacy-policy/privacy-policy';
 
 export const routes: Routes = [
     {
@@ -19,6 +21,14 @@ export const routes: Routes = [
     {
         path: 'login',
         component: Login
+    },
+        {
+        path: 'terms',
+        component: TermsComponent
+    },
+        {
+        path: 'privacy-policy',
+        component: PrivacyPolicyComponent
     },
     {
         path: 'register',

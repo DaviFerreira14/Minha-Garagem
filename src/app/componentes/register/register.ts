@@ -1,3 +1,4 @@
+// register.component.ts - FIXED
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -77,46 +78,46 @@ export class Register implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
-  console.log('Form submitted!');
-  console.log('Form valid:', this.registerForm.valid);
-  
-  if (this.registerForm.valid) {
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const { displayName, email, password } = this.registerForm.value;
+    console.log('Form submitted!');
+    console.log('Form valid:', this.registerForm.valid);
     
-    console.log('Trying to register:', { displayName, email, password });
+    if (this.registerForm.valid) {
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
 
-    try {
-      console.log('Calling authService.register...');
-      const result = await this.authService.register(email, password, displayName);
-      console.log('Register result:', result);
+      const { displayName, email, password } = this.registerForm.value;
       
-      if (result.success) {
-        console.log('Registration successful!'); 
-        this.successMessage = result.message;
+      console.log('Trying to register:', { displayName, email, password });
+
+      try {
+        console.log('Calling authService.register...');
+        const result = await this.authService.register(email, password, displayName);
+        console.log('Register result:', result);
         
-        console.log('Redirecting to dashboard...'); 
-        this.router.navigate(['/dashboard']);
-      } else {
-        console.log('Registration failed:', result.message);
-        this.errorMessage = result.message;
+        if (result.success) {
+          console.log('Registration successful!'); 
+          this.successMessage = result.message;
+          
+          console.log('Redirecting to dashboard...'); 
+          this.router.navigate(['/dashboard']);
+        } else {
+          console.log('Registration failed:', result.message);
+          this.errorMessage = result.message;
+        }
+      } catch (error) {
+        console.error('Error in register:', error);
+        this.errorMessage = 'Erro inesperado. Tente novamente.';
+      } finally {
+        console.log('Stopping loading...'); 
+        this.isLoading = false;
       }
-    } catch (error) {
-      console.error('Error in register:', error);
-      this.errorMessage = 'Erro inesperado. Tente novamente.';
-    } finally {
-      console.log('Stopping loading...'); 
-      this.isLoading = false;
+    } else {
+      console.log('Form is invalid!');
+      this.markFormGroupTouched(this.registerForm);
+      this.errorMessage = 'Por favor, corrija os erros no formulário.';
     }
-  } else {
-    console.log('Form is invalid!');
-    this.markFormGroupTouched(this.registerForm);
-    this.errorMessage = 'Por favor, corrija os erros no formulário.';
   }
-}
 
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
@@ -131,6 +132,16 @@ export class Register implements OnInit {
 
   goToLogin(): void {
     this.router.navigate(['/login']);
+  }
+
+  // CORRIGIDO: Método para navegar para termos
+  goToTerms(): void {
+    this.router.navigate(['/terms']);
+  }
+
+  // CORRIGIDO: Método para navegar para política de privacidade
+  goToPrivacyPolicy(): void {
+    this.router.navigate(['/privacy-policy']);
   }
 
   get f() {
@@ -166,5 +177,4 @@ export class Register implements OnInit {
     
     return displayNames[fieldName] || fieldName;
   }
-  
 }

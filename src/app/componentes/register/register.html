@@ -1,3 +1,4 @@
+<!-- register.component.html - FIXED -->
 <div class="register-container">
   <div class="container-fluid vh-100">
     <div class="row h-100">
@@ -138,8 +139,8 @@
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="acceptTerms" formControlName="acceptTerms">
                 <label class="form-check-label" for="acceptTerms">
-                  Eu aceito os <a href="#" class="text-decoration-none">Termos de Uso</a> e a 
-                  <a href="#" class="text-decoration-none">Política de Privacidade</a>
+                  Eu aceito os <a href="#" class="text-decoration-none" (click)="goToTerms(); $event.preventDefault()">Termos de Uso</a> e a 
+                  <a href="#" class="text-decoration-none" (click)="goToPrivacyPolicy(); $event.preventDefault()">Política de Privacidade</a>
                 </label>
               </div>
               <div class="invalid-feedback d-block" *ngIf="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched">
