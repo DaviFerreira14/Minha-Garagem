@@ -1,4 +1,4 @@
-// src/app/componentes/edit-vehicle/edit-vehicle.ts - VERSÃO SIMPLIFICADA
+// edit-vehicle.component.ts - VERSÃO SIMPLIFICADA
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -19,7 +19,6 @@ import { AuthService } from '../../services/auth';
 export class EditVehicle implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef;
 
-  // Estados principais
   vehicleForm!: FormGroup;
   vehicle: Vehicle | null = null;
   originalVehicle: Vehicle | null = null;
@@ -29,7 +28,6 @@ export class EditVehicle implements OnInit, OnDestroy {
   isDragOver = false;
   error: string | null = null;
   
-  // Foto
   photoPreview: string | null = null;
   selectedPhoto: File | null = null;
   photoChanged = false;
@@ -125,9 +123,7 @@ export class EditVehicle implements OnInit, OnDestroy {
     this.isLoading = false;
   }
 
-  // ===== VALIDAÇÃO DE FORMULÁRIO =====
-  get f() { return this.vehicleForm.controls; }
-
+  // ===== VALIDAÇÃO =====
   hasError = (field: string, errorType: string) => {
     const control = this.vehicleForm.get(field);
     return control?.hasError(errorType) && (control.dirty || control.touched);
@@ -140,7 +136,7 @@ export class EditVehicle implements OnInit, OnDestroy {
     const displayNames = {
       brand: 'Marca', model: 'Modelo', year: 'Ano', licensePlate: 'Placa',
       color: 'Cor', fuel: 'Combustível', mileage: 'Quilometragem',
-      engineSize: 'Motor', transmission: 'Transmissão', doors: 'Portas'
+      transmission: 'Transmissão', doors: 'Portas'
     };
 
     const displayName = displayNames[fieldName as keyof typeof displayNames] || fieldName;
@@ -164,7 +160,7 @@ export class EditVehicle implements OnInit, OnDestroy {
     return fieldsChanged || this.photoChanged;
   }
 
-  // ===== MANIPULAÇÃO DE FOTO =====
+  // ===== FOTO =====
   onDragOver = (event: DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -236,7 +232,7 @@ export class EditVehicle implements OnInit, OnDestroy {
     this.vehicleForm.get('licensePlate')?.setValue(value);
   }
 
-  // ===== AÇÕES PRINCIPAIS =====
+  // ===== AÇÕES =====
   async onSubmit(): Promise<void> {
     if (!this.vehicleForm.valid || this.isSubmitting || !this.vehicle?.id) {
       this.markFormGroupTouched();
@@ -248,7 +244,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     try {
       const formData = this.vehicleForm.value;
       
-      // Processar foto
       let photoBase64 = this.vehicle.photo;
       if (this.photoChanged) {
         photoBase64 = this.selectedPhoto 
@@ -274,7 +269,8 @@ export class EditVehicle implements OnInit, OnDestroy {
       await this.vehicleService.updateVehicle(this.vehicle.id, updatedData);
       console.log('Veículo atualizado com sucesso');
       
-      setTimeout(() => this.router.navigate(['/vehicles', this.vehicle!.id]), 1000);
+      // CORRIGIDO: Redirecionar para dashboard após salvar
+      this.router.navigate(['/dashboard']);
         
     } catch (error) {
       console.error('Erro ao atualizar veículo:', error);
@@ -284,13 +280,13 @@ export class EditVehicle implements OnInit, OnDestroy {
     }
   }
 
+  // CORRIGIDO: Voltar sempre para dashboard
   cancel(): void {
     if (this.hasChanges() && !confirm('Você tem alterações não salvas. Deseja realmente cancelar?')) {
       return;
     }
     
-    const destination = this.vehicle ? ['/vehicles', this.vehicle.id] : ['/dashboard'];
-    this.router.navigate(destination);
+    this.router.navigate(['/dashboard']);
   }
 
   resetForm(): void {
@@ -302,7 +298,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     this.vehicleForm.markAsUntouched();
   }
 
-  // ===== UTILITÁRIOS =====
   private markFormGroupTouched(): void {
     Object.keys(this.vehicleForm.controls).forEach(key => {
       this.vehicleForm.get(key)?.markAsTouched();

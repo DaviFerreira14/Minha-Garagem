@@ -11,6 +11,7 @@ import { ExpensesComponent } from './componentes/expenses/expenses';
 import { authGuard } from './guards/auth-guard';
 import { TermsComponent } from './componentes/terms/terms';
 import { PrivacyPolicyComponent } from './componentes/privacy-policy/privacy-policy';
+import { EditVehicle } from './componentes/edit-vehicle/edit-vehicle';
 
 export const routes: Routes = [
     {
@@ -55,7 +56,7 @@ export const routes: Routes = [
     },
     {
         path: 'vehicles/:id/edit',
-        component: AddVehicle, 
+        component: EditVehicle, 
         canActivate: [authGuard]
     },
     {
