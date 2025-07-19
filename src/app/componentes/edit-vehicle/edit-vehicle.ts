@@ -1,4 +1,4 @@
-// edit-vehicle.component.ts - VERSÃO SIMPLIFICADA
+// edit-vehicle.component.ts
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -33,6 +33,7 @@ export class EditVehicle implements OnInit, OnDestroy {
   photoChanged = false;
   
   years: number[] = [];
+  showResetConfirm = false;
   private routeSubscription = new Subscription();
 
   constructor(
@@ -53,7 +54,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     this.routeSubscription.unsubscribe();
   }
 
-  // ===== INICIALIZAÇÃO =====
   private generateYearsList(): void {
     const currentYear = new Date().getFullYear();
     this.years = Array.from({ length: currentYear - 1899 }, (_, i) => currentYear - i);
@@ -99,7 +99,6 @@ export class EditVehicle implements OnInit, OnDestroy {
       this.isLoading = false;
 
     } catch (error) {
-      console.error('Erro ao carregar veículo:', error);
       this.setError('Erro ao carregar veículo para edição');
     }
   }
@@ -123,7 +122,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     this.isLoading = false;
   }
 
-  // ===== VALIDAÇÃO =====
   hasError = (field: string, errorType: string) => {
     const control = this.vehicleForm.get(field);
     return control?.hasError(errorType) && (control.dirty || control.touched);
@@ -160,7 +158,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     return fieldsChanged || this.photoChanged;
   }
 
-  // ===== FOTO =====
   onDragOver = (event: DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -218,7 +215,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     if (this.fileInput) this.fileInput.nativeElement.value = '';
   }
 
-  // ===== FORMATAÇÃO =====
   formatLicensePlate(event: any): void {
     let value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     
@@ -232,7 +228,6 @@ export class EditVehicle implements OnInit, OnDestroy {
     this.vehicleForm.get('licensePlate')?.setValue(value);
   }
 
-  // ===== AÇÕES =====
   async onSubmit(): Promise<void> {
     if (!this.vehicleForm.valid || this.isSubmitting || !this.vehicle?.id) {
       this.markFormGroupTouched();
@@ -267,35 +262,37 @@ export class EditVehicle implements OnInit, OnDestroy {
       };
 
       await this.vehicleService.updateVehicle(this.vehicle.id, updatedData);
-      console.log('Veículo atualizado com sucesso');
-      
-      // CORRIGIDO: Redirecionar para dashboard após salvar
       this.router.navigate(['/dashboard']);
         
     } catch (error) {
-      console.error('Erro ao atualizar veículo:', error);
       alert('Erro ao atualizar veículo. Tente novamente.');
     } finally {
       this.isSubmitting = false;
     }
   }
 
-  // CORRIGIDO: Voltar sempre para dashboard
   cancel(): void {
-    if (this.hasChanges() && !confirm('Você tem alterações não salvas. Deseja realmente cancelar?')) {
-      return;
+    if (this.hasChanges()) {
+      this.showResetConfirm = true;
+    } else {
+      this.router.navigate(['/dashboard']);
     }
-    
-    this.router.navigate(['/dashboard']);
   }
 
   resetForm(): void {
-    if (!confirm('Deseja resetar o formulário para os valores originais?')) return;
-    
+    this.showResetConfirm = true;
+  }
+
+  confirmReset(): void {
     this.populateForm();
     this.restoreOriginalPhoto();
     this.vehicleForm.markAsPristine();
     this.vehicleForm.markAsUntouched();
+    this.showResetConfirm = false;
+  }
+
+  cancelReset(): void {
+    this.showResetConfirm = false;
   }
 
   private markFormGroupTouched(): void {

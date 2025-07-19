@@ -1,7 +1,6 @@
-<!-- edit-vehicle.component.html - VERSÃO SIMPLIFICADA -->
+<!-- edit-vehicle.component.html -->
 <div class="edit-vehicle-container">
   
-  <!-- Header -->
   <div class="edit-header">
     <div class="container">
       <div class="row align-items-center">
@@ -31,13 +30,11 @@
 
   <div class="container py-4">
     
-    <!-- Loading -->
     <div *ngIf="isLoading" class="text-center py-5">
       <div class="loading-spinner"></div>
       <p class="text-muted mt-3">Carregando veículo...</p>
     </div>
 
-    <!-- Error -->
     <div *ngIf="error && !isLoading" class="alert alert-danger">
       <i class="fas fa-exclamation-triangle me-2"></i>
       {{ error }}
@@ -46,10 +43,8 @@
       </div>
     </div>
 
-    <!-- Form -->
     <div *ngIf="vehicle && !isLoading && !error">
       
-      <!-- Header -->
       <div class="form-header">
         <div class="row align-items-center">
           <div class="col">
@@ -70,7 +65,6 @@
 
       <form [formGroup]="vehicleForm" (ngSubmit)="onSubmit()">
         
-        <!-- Foto -->
         <div class="form-section">
           <div class="section-header">
             <h3><i class="fas fa-camera me-2"></i>Foto do Veículo</h3>
@@ -109,7 +103,6 @@
           <input #fileInput type="file" accept="image/*" style="display: none" (change)="onFileSelected($event)">
         </div>
 
-        <!-- Informações Básicas -->
         <div class="form-section">
           <div class="section-header">
             <h3><i class="fas fa-info-circle me-2"></i>Informações Básicas</h3>
@@ -170,7 +163,6 @@
           </div>
         </div>
 
-        <!-- Especificações -->
         <div class="form-section">
           <div class="section-header">
             <h3><i class="fas fa-cogs me-2"></i>Especificações Técnicas</h3>
@@ -217,7 +209,6 @@
           </div>
         </div>
 
-        <!-- Observações -->
         <div class="form-section">
           <div class="section-header">
             <h3><i class="fas fa-sticky-note me-2"></i>Observações</h3>
@@ -230,7 +221,6 @@
           </div>
         </div>
 
-        <!-- Ações -->
         <div class="form-actions">
           <div class="row align-items-center">
             <div class="col-md-6">
@@ -256,6 +246,47 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <div *ngIf="showResetConfirm" class="modal-overlay" (click)="cancelReset()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <i class="fas fa-undo text-warning me-2"></i>
+          Confirmar Resetar
+        </h4>
+      </div>
+      <div class="modal-body">
+        <div class="reset-warning">
+          <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="warning-content">
+            <h5>Deseja resetar o formulário?</h5>
+            <p>Todas as alterações não salvas serão perdidas e o formulário retornará aos valores originais.</p>
+          </div>
+        </div>
+        <div class="reset-info">
+          <div class="info-item">
+            <i class="fas fa-info-circle me-2"></i>
+            <span>Esta ação não pode ser desfeita</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-history me-2"></i>
+            <span>Fotos alteradas também serão restauradas</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelReset()">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-warning" (click)="confirmReset()">
+          <i class="fas fa-undo me-1"></i>Confirmar Reset
+        </button>
+      </div>
     </div>
   </div>
 </div>
