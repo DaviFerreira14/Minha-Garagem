@@ -1,14 +1,8 @@
-<!-- dashboard.component.html -->
 <div class="dashboard-container">
-  
-  <!-- Navbar Component -->
   <app-navbar></app-navbar>
 
-  <!-- Main Content -->
   <main class="main-content">
     <div class="container py-4">
-      
-      <!-- Header -->
       <div class="welcome-section mb-4">
         <div class="row align-items-center">
           <div class="col-md-8">
@@ -24,13 +18,11 @@
         </div>
       </div>
 
-      <!-- Loading -->
       <div *ngIf="isLoading" class="text-center py-5">
         <div class="spinner-border text-primary"></div>
         <p class="mt-3 text-muted">Carregando...</p>
       </div>
       
-      <!-- Empty State -->
       <div *ngIf="!hasVehicles && !isLoading" class="text-center py-5">
         <div class="empty-state-card">
           <i class="fas fa-car-side fa-6x text-muted mb-4 empty-illustration"></i>
@@ -42,10 +34,7 @@
         </div>
       </div>
       
-      <!-- Dashboard with Vehicles -->
       <div *ngIf="hasVehicles && !isLoading">
-        
-        <!-- Quick Stats -->
         <div class="row mb-4">
           <div class="col-md-3 col-sm-6 mb-3">
             <div class="stat-card">
@@ -93,7 +82,6 @@
           </div>
         </div>
 
-        <!-- Vehicle Cards -->
         <div class="row mb-4">
           <div class="col-12">
             <h3 class="fw-bold section-title mb-3">Meus Veículos</h3>
@@ -103,8 +91,6 @@
         <div class="row">
           <div *ngFor="let vehicle of vehicles" class="col-lg-6 col-xl-4 mb-4">
             <div class="vehicle-card">
-              
-              <!-- Photo -->
               <div class="vehicle-photo">
                 <img *ngIf="vehicle.photo" [src]="vehicle.photo" [alt]="getVehicleFullName(vehicle)" class="vehicle-image">
                 <div *ngIf="!vehicle.photo" class="vehicle-placeholder">
@@ -112,12 +98,10 @@
                 </div>
               </div>
 
-              <!-- Info -->
               <div class="vehicle-info">
                 <h5 class="vehicle-title">{{ getVehicleFullName(vehicle) }}</h5>
                 <p class="vehicle-subtitle text-muted">{{ vehicle.color }} • {{ vehicle.licensePlate }}</p>
                 
-                <!-- Details -->
                 <div class="vehicle-details mb-3">
                   <div class="detail-row">
                     <span class="detail-label">Combustível:</span>
@@ -135,7 +119,6 @@
                   </div>
                 </div>
 
-                <!-- Actions -->
                 <div class="vehicle-actions">
                   <button class="btn btn-primary btn-sm me-2" 
                           (click)="viewVehicleDetails(vehicle.id)"
@@ -161,16 +144,13 @@
     </div>
   </main>
 
-  <!-- Footer Component -->
   <app-footer></app-footer>
 
-  <!-- Modal de Confirmação -->
   <div *ngIf="showDeleteModal" class="modal-overlay" (click)="cancelDelete()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h4 class="modal-title">
-          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-          Confirmar Exclusão
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirmar Exclusão
         </h4>
       </div>
       <div class="modal-body">
@@ -180,8 +160,7 @@
           <small class="text-muted">{{ vehicleToDelete.color }} • {{ vehicleToDelete.licensePlate }}</small>
         </div>
         <p class="warning-text">
-          <i class="fas fa-info-circle me-1"></i>
-          Esta ação não pode ser desfeita.
+          <i class="fas fa-info-circle me-1"></i>Esta ação não pode ser desfeita.
         </p>
       </div>
       <div class="modal-footer">

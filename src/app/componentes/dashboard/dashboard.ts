@@ -1,4 +1,3 @@
-// dashboard.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -19,17 +18,14 @@ import { FooterComponent } from "../footer/footer";
   styleUrls: ['./dashboard.css']
 })
 export class Dashboard implements OnInit, OnDestroy {
-  // Estados principais
   vehicles: Vehicle[] = [];
   isLoading = true;
   errorMessage = '';
   
-  // Estados do modal
   showDeleteModal = false;
   vehicleToDelete: Vehicle | null = null;
   isDeleting = false;
   
-  // Estatísticas
   upcomingMaintenanceCount = 0;
   totalMaintenanceCount = 0;
   totalExpensesThisMonth = '0,00';
@@ -54,7 +50,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.vehicleSubscription?.unsubscribe();
   }
 
-  // ===== CARREGAMENTO =====
   private loadVehicles(): void {
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
@@ -69,7 +64,6 @@ export class Dashboard implements OnInit, OnDestroy {
         this.loadStatistics();
       },
       error: (error: any) => {
-        console.error('Erro ao carregar veículos:', error);
         this.errorMessage = 'Erro ao carregar veículos';
         this.isLoading = false;
       }
@@ -82,36 +76,15 @@ export class Dashboard implements OnInit, OnDestroy {
 
   private async loadMaintenanceData(): Promise<void> {
     try {
-      console.log('🔧 Iniciando carregamento de manutenções...');
-      
       const maintenances = await this.maintenanceService.getUserMaintenances();
-      console.log('📋 Manutenções encontradas:', maintenances);
-      console.log('📊 Total de manutenções:', maintenances.length);
-      
-      if (maintenances.length > 0) {
-        console.log('🔍 Detalhes das manutenções:');
-        maintenances.forEach((m, index) => {
-          console.log(`  ${index + 1}. Tipo: "${m.type}", Data: ${m.date}, Título: "${m.title}"`);
-        });
-      }
-      
       const now = new Date();
-      console.log('📅 Data atual:', now);
-      
       const upcoming = maintenances.filter(m => {
-        const isScheduled = m.type === 'agendada';
-        const isFuture = new Date(m.date) > now;
-        console.log(`  ⚙️ ${m.title}: tipo="${m.type}" (agendada=${isScheduled}), data=${m.date} (futura=${isFuture})`);
-        return isScheduled && isFuture;
+        return m.type === 'agendada' && new Date(m.date) > now;
       });
       
       this.totalMaintenanceCount = maintenances.length;
       this.upcomingMaintenanceCount = upcoming.length;
-      console.log('✅ Total de manutenções:', this.totalMaintenanceCount);
-      console.log('✅ Manutenções próximas calculadas:', this.upcomingMaintenanceCount);
-      
     } catch (error) {
-      console.error('❌ Erro ao carregar manutenções:', error);
       this.upcomingMaintenanceCount = 0;
     }
   }
@@ -124,19 +97,14 @@ export class Dashboard implements OnInit, OnDestroy {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
-      
-      console.log('Gastos do mês:', expenses.length, 'Total:', this.totalExpensesThisMonth);
     } catch (error) {
-      console.error('Erro ao carregar gastos:', error);
       this.totalExpensesThisMonth = '0,00';
     }
   }
 
-  // ===== PROPRIEDADES CALCULADAS =====
   get hasVehicles(): boolean { return this.vehicles.length > 0; }
   get totalVehicles(): number { return this.vehicles.length; }
 
-  // ===== MÉTODOS DO USUÁRIO =====
   getUserDisplayName(): string { return this.authService.getUserDisplayName(); }
   getUserFirstName(): string { return this.authService.getUserFirstName(); }
   get currentUser() { return this.authService.getCurrentUser(); }
@@ -147,15 +115,11 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  // ===== ESTATÍSTICAS =====
   getUpcomingMaintenanceCount(): number { 
-    // Temporariamente mostrar total de manutenções para debug
-    // Trocar para this.upcomingMaintenanceCount quando funcionar
     return this.totalMaintenanceCount > 0 ? this.totalMaintenanceCount : this.upcomingMaintenanceCount;
   }
   getTotalExpensesThisMonth(): string { return this.totalExpensesThisMonth; }
 
-  // ===== MÉTODOS DE VEÍCULO =====
   getVehicleFullName(vehicle: Vehicle): string {
     return `${vehicle.brand} ${vehicle.model} ${vehicle.year}`;
   }
@@ -192,7 +156,6 @@ export class Dashboard implements OnInit, OnDestroy {
     return date ? new Date(date).toLocaleDateString('pt-BR') : 'Data não disponível';
   }
 
-  // ===== AÇÕES DE VEÍCULO =====
   removeVehicle(vehicle: Vehicle): void {
     if (!vehicle.id) return;
     this.vehicleToDelete = vehicle;
@@ -215,14 +178,12 @@ export class Dashboard implements OnInit, OnDestroy {
       this.vehicleToDelete = null;
       setTimeout(() => this.loadStatistics(), 100);
     } catch (error) {
-      console.error('Erro ao deletar veículo:', error);
       this.errorMessage = 'Erro ao deletar veículo';
     } finally {
       this.isDeleting = false;
     }
   }
 
-  // ===== NAVEGAÇÃO =====
   addFirstVehicle(): void { this.router.navigate(['/add-vehicle']); }
   addNewVehicle(): void { this.router.navigate(['/add-vehicle']); }
   viewVehicleDetails(vehicleId: string): void { 
@@ -232,7 +193,6 @@ export class Dashboard implements OnInit, OnDestroy {
     if (vehicleId) this.router.navigate(['/vehicles', vehicleId, 'edit']); 
   }
   
-  // Métodos de navegação duplicados (manter compatibilidade)
   navigateToDashboard(): void { this.router.navigate(['/dashboard']); }
   navigateToExpenses(): void { this.router.navigate(['/expenses']); }
   navigateToMaintenance(): void { this.router.navigate(['/maintenance']); }
@@ -247,15 +207,12 @@ export class Dashboard implements OnInit, OnDestroy {
   goToExpenses(): void { this.router.navigate(['/expenses']); }
   goToReports(): void { this.router.navigate(['/reports']); }
 
-  // ===== MÉTODOS DE DESENVOLVIMENTO =====
   async clearAllVehicles(): Promise<void> {
     const confirmClear = confirm('Tem certeza que deseja limpar todos os veículos? Esta ação não pode ser desfeita.');
     if (confirmClear) {
       try {
         await this.vehicleService.clearAllVehicles();
-        console.log('Todos os veículos foram removidos');
       } catch (error) {
-        console.error('Erro ao limpar veículos:', error);
         this.errorMessage = 'Erro ao limpar veículos';
       }
     }
@@ -267,15 +224,11 @@ export class Dashboard implements OnInit, OnDestroy {
   async migrateData(): Promise<void> {
     try {
       await this.vehicleService.migrateFromLocalStorage();
-      console.log('Migração concluída');
     } catch (error) {
-      console.error('Erro na migração:', error);
+      // Error handling silent
     }
   }
 
-  // ===== LOGOUT =====
   async logout(): Promise<void> { await this.authService.logout(); }
-
-  // Alias para compatibilidade
   async deleteVehicle(vehicle: Vehicle): Promise<void> { this.removeVehicle(vehicle); }
 }
