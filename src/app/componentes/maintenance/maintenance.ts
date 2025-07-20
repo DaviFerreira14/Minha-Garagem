@@ -20,28 +20,38 @@ import { FooterComponent } from '../footer/footer';
   styleUrls: ['./maintenance.css']
 })
 export class MaintenanceComponent implements OnInit, OnDestroy {
+  // Propriedades consolidadas
   maintenanceForm!: FormGroup;
   editForm!: FormGroup;
   maintenances: MaintenanceModel[] = [];
   filteredMaintenances: MaintenanceModel[] = [];
   vehicles: Vehicle[] = [];
 
+  // Estados da UI
   showAddForm = false;
   showEditForm = false;
+  showDeleteConfirm = false;
+  
+  // Estados de loading
   isLoading = false;
   isLoadingMaintenances = true;
   isUpdating = false;
+  isDeleting = false;
+
+  // Mensagens e filtros
   successMessage = '';
   errorMessage = '';
-
   selectedVehicleFilter = '';
   selectedTypeFilter = '';
-  minDate = '';
 
-  showDeleteConfirm = false;
+  // Objetos temporários
   maintenanceToDelete: MaintenanceModel | null = null;
   maintenanceToEdit: MaintenanceModel | null = null;
-  isDeleting = false;
+  
+  // Data mínima calculada
+  get minDate(): string {
+    return new Date().toISOString().split('T')[0];
+  }
 
   constructor(
     private formBuilder: FormBuilder,
@@ -53,11 +63,8 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.initializeForm();
-    this.initializeEditForm();
-    this.loadVehicles();
-    this.loadMaintenances();
-    this.setMinDate();
+    this.initializeForms();
+    this.loadData();
     this.reminderService.startReminderSystem();
   }
 
@@ -65,43 +72,58 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.reminderService.stopReminderSystem();
   }
 
-  private setMinDate(): void {
-    const today = new Date();
-    this.minDate = today.toISOString().split('T')[0];
+  // Inicialização consolidada
+  private initializeForms(): void {
+    // Formulário principal
+    this.maintenanceForm = this.createMaintenanceForm();
+    this.maintenanceForm.get('type')?.valueChanges.subscribe(type => 
+      this.onTypeChange(type, this.maintenanceForm, false)
+    );
+
+    // Formulário de edição
+    this.editForm = this.createMaintenanceForm();
+    this.editForm.get('type')?.valueChanges.subscribe(type => 
+      this.onTypeChange(type, this.editForm, true)
+    );
   }
 
-  private initializeForm(): void {
-    this.maintenanceForm = this.formBuilder.group({
+  private createMaintenanceForm(): FormGroup {
+    return this.formBuilder.group({
       vehicleId: ['', Validators.required],
       type: ['', Validators.required],
       title: ['', Validators.required],
-      date: ['', [Validators.required, this.dateValidator.bind(this)]],
+      date: ['', [Validators.required, (control: any) => this.dateValidator(control)]],
       items: this.formBuilder.array([this.createItemFormGroup()]),
       notes: ['']
     });
-
-    this.maintenanceForm.get('type')?.valueChanges.subscribe(type => {
-      this.onMaintenanceTypeChange(type);
-    });
   }
 
-  private initializeEditForm(): void {
-    this.editForm = this.formBuilder.group({
-      vehicleId: ['', Validators.required],
-      type: ['', Validators.required],
-      title: ['', Validators.required],
-      date: ['', [Validators.required, this.editDateValidator.bind(this)]],
-      items: this.formBuilder.array([]),
-      notes: ['']
-    });
-
-    this.editForm.get('type')?.valueChanges.subscribe(type => {
-      this.onEditTypeChange(type);
-    });
+  private async loadData(): Promise<void> {
+    try {
+      await Promise.all([this.loadVehicles(), this.loadMaintenances()]);
+    } catch (error) {
+      this.errorMessage = 'Erro ao carregar dados';
+    }
   }
 
-  onMaintenanceTypeChange(type: string): void {
-    const dateControl = this.maintenanceForm.get('date');
+  // Validação consolidada de data
+  private dateValidator = (control: any): { [key: string]: any } | null => {
+    const form = control.parent;
+    if (!form) return null;
+    
+    const type = form.get('type')?.value;
+    const selectedDate = control.value;
+    
+    if (!selectedDate || !type) return null;
+    if (type === 'agendada' && selectedDate < this.minDate) {
+      return { 'pastDate': true };
+    }
+    return null;
+  }
+
+  // Manipulação de tipo consolidada
+  private onTypeChange(type: string, form: FormGroup, isEdit: boolean): void {
+    const dateControl = form.get('date');
     if (type === 'agendada') {
       const currentDate = dateControl?.value;
       if (currentDate && currentDate < this.minDate) {
@@ -112,67 +134,22 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     dateControl?.updateValueAndValidity();
   }
 
-  onEditTypeChange(type: string): void {
-    const dateControl = this.editForm.get('date');
-    if (type === 'agendada' && this.maintenanceToEdit?.type === 'agendada') {
-      const currentDate = dateControl?.value;
-      if (currentDate && currentDate < this.minDate) {
-        dateControl?.setValue('');
-        this.showTemporaryMessage('Para manutenções agendadas, selecione uma data atual ou futura');
-      }
-    }
-    dateControl?.updateValueAndValidity();
-  }
-
-  dateValidator(control: any): { [key: string]: any } | null {
-    const type = this.maintenanceForm?.get('type')?.value;
-    const selectedDate = control.value;
-
-    if (!selectedDate || !type) return null;
-
-    if (type === 'agendada' && selectedDate < this.minDate) {
-      return { 'pastDate': true };
-    }
-    return null;
-  }
-
-  editDateValidator(control: any): { [key: string]: any } | null {
-    const type = this.editForm?.get('type')?.value;
-    const selectedDate = control.value;
-
-    if (!selectedDate || !type) return null;
-
-    if (type === 'agendada' && this.maintenanceToEdit?.type === 'agendada' && selectedDate < this.minDate) {
-      return { 'pastDate': true };
-    }
-    return null;
-  }
-
-  getMinDate(): string {
-    const type = this.maintenanceForm?.get('type')?.value;
+  // Métodos de validação consolidados
+  getMinDate(isEdit = false): string {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const type = form?.get('type')?.value;
     return type === 'agendada' ? this.minDate : '';
   }
 
-  getEditMinDate(): string {
-    const type = this.editForm?.get('type')?.value;
-    if (type === 'agendada' && this.maintenanceToEdit?.type === 'agendada') {
-      return this.minDate;
-    }
-    return '';
-  }
-
-  getMaxDate(): string {
-    const type = this.maintenanceForm?.get('type')?.value;
+  getMaxDate(isEdit = false): string {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const type = form?.get('type')?.value;
     return type === 'realizada' ? this.minDate : '';
   }
 
-  getEditMaxDate(): string {
-    const type = this.editForm?.get('type')?.value;
-    return type === 'realizada' ? this.minDate : '';
-  }
-
-  getDateErrorMessage(): string {
-    const dateControl = this.maintenanceForm.get('date');
+  getDateErrorMessage(isEdit = false): string {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const dateControl = form.get('date');
     if (!dateControl?.errors) return '';
 
     if (dateControl.errors['required']) return 'Selecione uma data';
@@ -180,104 +157,39 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  getEditDateErrorMessage(): string {
-    const dateControl = this.editForm.get('date');
-    if (!dateControl?.errors) return '';
+  getDateHelperText(isEdit = false): string {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const type = form.get('type')?.value;
+    const date = form.get('date')?.value;
 
-    if (dateControl.errors['required']) return 'Selecione uma data';
-    if (dateControl.errors['pastDate']) return 'Manutenções agendadas não podem ser marcadas para datas passadas';
+    if (!type) return 'Selecione primeiro o tipo de manutenção';
+
+    if (type === 'agendada') {
+      if (!date) return 'Selecione uma data atual ou futura para a manutenção';
+      
+      const selectedDate = new Date(date);
+      const today = new Date();
+      const diffDays = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays <= 7) return '⚡ Manutenção próxima - Você receberá lembretes por email!';
+      if (diffDays > 365) return '⚠️ Data muito distante - Confirme se está correto';
+      return '📅 Manutenção agendada - Lembretes automáticos ativados!';
+    }
+
+    if (type === 'realizada') {
+      if (!date) return 'Selecione a data em que a manutenção foi realizada';
+      
+      const selectedDate = new Date(date);
+      const today = new Date();
+      return selectedDate.toDateString() === today.toDateString() 
+        ? '✅ Manutenção realizada hoje' 
+        : '📋 Manutenção registrada no histórico';
+    }
+
     return '';
   }
 
-  getDateHelperText(): string {
-    const type = this.maintenanceForm.get('type')?.value;
-    const date = this.maintenanceForm.get('date')?.value;
-
-    switch (type) {
-      case 'agendada':
-        if (date) {
-          const selectedDate = new Date(date);
-          const today = new Date();
-          const diffDays = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays <= 7) return '⚡ Manutenção próxima - Você receberá lembretes por email!';
-          if (diffDays > 365) return '⚠️ Data muito distante - Confirme se está correto';
-          return '📅 Manutenção agendada - Lembretes automáticos ativados!';
-        }
-        return 'Selecione uma data atual ou futura para a manutenção';
-      case 'realizada':
-        if (date) {
-          const selectedDate = new Date(date);
-          const today = new Date();
-          return selectedDate.toDateString() === today.toDateString() 
-            ? '✅ Manutenção realizada hoje' 
-            : '📋 Manutenção registrada no histórico';
-        }
-        return 'Selecione a data em que a manutenção foi realizada';
-      default:
-        return 'Selecione primeiro o tipo de manutenção';
-    }
-  }
-
-  getEditDateHelperText(): string {
-    const type = this.editForm.get('type')?.value;
-    const date = this.editForm.get('date')?.value;
-
-    switch (type) {
-      case 'agendada':
-        if (date) {
-          const selectedDate = new Date(date);
-          const today = new Date();
-          const diffDays = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays <= 7) return '⚡ Manutenção próxima - Você receberá lembretes por email!';
-          if (diffDays > 365) return '⚠️ Data muito distante - Confirme se está correto';
-          return '📅 Manutenção agendada - Lembretes automáticos ativados!';
-        }
-        return 'Selecione uma data atual ou futura para a manutenção';
-      case 'realizada':
-        if (date) {
-          const selectedDate = new Date(date);
-          const today = new Date();
-          return selectedDate.toDateString() === today.toDateString() 
-            ? '✅ Manutenção realizada hoje' 
-            : '📋 Manutenção registrada no histórico';
-        }
-        return 'Selecione a data em que a manutenção foi realizada';
-      default:
-        return 'Selecione primeiro o tipo de manutenção';
-    }
-  }
-
-  private showTemporaryMessage(message: string): void {
-    this.errorMessage = message;
-    setTimeout(() => this.errorMessage = '', 4000);
-  }
-
-  validateMaintenanceDate(): boolean {
-    const type = this.maintenanceForm.get('type')?.value;
-    const date = this.maintenanceForm.get('date')?.value;
-
-    if (!type || !date) return false;
-    if (type === 'agendada' && date < this.minDate) {
-      this.errorMessage = 'Manutenções agendadas não podem ser marcadas para datas passadas';
-      return false;
-    }
-    return true;
-  }
-
-  validateEditDate(): boolean {
-    const type = this.editForm.get('type')?.value;
-    const date = this.editForm.get('date')?.value;
-
-    if (!type || !date) return false;
-    if (type === 'agendada' && this.maintenanceToEdit?.type === 'agendada' && date < this.minDate) {
-      this.errorMessage = 'Manutenções agendadas não podem ser marcadas para datas passadas';
-      return false;
-    }
-    return true;
-  }
-
+  // Métodos de item consolidados
   private createItemFormGroup(): FormGroup {
     return this.formBuilder.group({
       description: ['', Validators.required],
@@ -285,53 +197,31 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  get itemsFormArray(): FormArray {
-    return this.maintenanceForm.get('items') as FormArray;
+  getItemsControls(isEdit = false) {
+    const formArray = isEdit ? this.editForm.get('items') as FormArray : this.maintenanceForm.get('items') as FormArray;
+    return formArray.controls;
   }
 
-  get editItemsFormArray(): FormArray {
-    return this.editForm.get('items') as FormArray;
+  addItem(isEdit = false): void {
+    const formArray = isEdit ? this.editForm.get('items') as FormArray : this.maintenanceForm.get('items') as FormArray;
+    formArray.push(this.createItemFormGroup());
   }
 
-  getItemsControls() {
-    return this.itemsFormArray.controls;
-  }
-
-  getEditItemsControls() {
-    return this.editItemsFormArray.controls;
-  }
-
-  addItem(): void {
-    this.itemsFormArray.push(this.createItemFormGroup());
-  }
-
-  addEditItem(): void {
-    this.editItemsFormArray.push(this.createItemFormGroup());
-  }
-
-  removeItem(index: number): void {
-    if (this.itemsFormArray.length > 1) {
-      this.itemsFormArray.removeAt(index);
+  removeItem(index: number, isEdit = false): void {
+    const formArray = isEdit ? this.editForm.get('items') as FormArray : this.maintenanceForm.get('items') as FormArray;
+    if (formArray.length > 1) {
+      formArray.removeAt(index);
     }
   }
 
-  removeEditItem(index: number): void {
-    if (this.editItemsFormArray.length > 1) {
-      this.editItemsFormArray.removeAt(index);
-    }
-  }
-
-  calculateTotal(): number {
-    const items = this.maintenanceForm.get('items')?.value || [];
+  calculateTotal(isEdit = false): number {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const items = form.get('items')?.value || [];
     return items.reduce((total: number, item: any) => total + (Number(item.cost) || 0), 0);
   }
 
-  calculateEditTotal(): number {
-    const items = this.editForm.get('items')?.value || [];
-    return items.reduce((total: number, item: any) => total + (Number(item.cost) || 0), 0);
-  }
-
-  async loadVehicles(): Promise<void> {
+  // Carregamento de dados
+  private async loadVehicles(): Promise<void> {
     try {
       this.vehicles = await firstValueFrom(this.vehicleService.getVehicles());
     } catch (error) {
@@ -339,7 +229,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  async loadMaintenances(): Promise<void> {
+  private async loadMaintenances(): Promise<void> {
     try {
       this.isLoadingMaintenances = true;
       this.maintenances = await this.maintenanceService.getUserMaintenances();
@@ -365,35 +255,99 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.filteredMaintenances = filtered;
   }
 
-  showEditModal(maintenance: MaintenanceModel): void {
-    this.maintenanceToEdit = maintenance;
-    this.showEditForm = true;
-    this.populateEditForm(maintenance);
-  }
-
-  private populateEditForm(maintenance: MaintenanceModel): void {
-    while (this.editItemsFormArray.length !== 0) {
-      this.editItemsFormArray.removeAt(0);
+  // Operações CRUD consolidadas
+  async onSubmit(isEdit = false): Promise<void> {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    
+    if (!form.valid || !this.validateDate(isEdit)) {
+      this.markFormGroupTouched(form);
+      if (this.validateDate(isEdit)) {
+        this.errorMessage = 'Por favor, corrija os erros no formulário';
+      }
+      return;
     }
 
-    maintenance.items.forEach(item => {
-      const itemGroup = this.formBuilder.group({
-        description: [item.description, Validators.required],
-        cost: [item.cost, [Validators.required, Validators.min(0)]]
-      });
-      this.editItemsFormArray.push(itemGroup);
-    });
+    const loadingProp = isEdit ? 'isUpdating' : 'isLoading';
+    this[loadingProp] = true;
+    this.clearMessages();
 
-    const dateValue = new Date(maintenance.date);
-    const formattedDate = dateValue.toISOString().split('T')[0];
+    try {
+      const maintenanceData = await this.buildMaintenanceData(form);
+      if (!maintenanceData) return;
 
-    this.editForm.patchValue({
-      vehicleId: maintenance.vehicleId,
-      type: maintenance.type,
-      title: maintenance.title,
-      date: formattedDate,
-      notes: maintenance.notes || ''
-    });
+      let result;
+      if (isEdit && this.maintenanceToEdit?.id) {
+        result = await this.maintenanceService.updateMaintenance(this.maintenanceToEdit.id, maintenanceData);
+      } else {
+        result = await this.maintenanceService.addMaintenance(maintenanceData);
+      }
+
+      if (result.success) {
+        this.handleSuccessfulSubmit(result.message, form.value.type, isEdit);
+      } else {
+        this.errorMessage = result.message;
+      }
+    } catch (error) {
+      this.errorMessage = `Erro inesperado ao ${isEdit ? 'atualizar' : 'salvar'} manutenção`;
+    } finally {
+      this[loadingProp] = false;
+    }
+  }
+
+  private async buildMaintenanceData(form: FormGroup) {
+    const formValue = form.value;
+    const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
+    
+    if (!selectedVehicle) {
+      this.errorMessage = 'Veículo não encontrado';
+      return null;
+    }
+
+    const validItems: MaintenanceItem[] = formValue.items
+      .filter((item: any) => item.description && item.description.trim())
+      .map((item: any) => ({
+        description: item.description.trim(),
+        cost: Number(item.cost) || 0
+      }));
+
+    if (validItems.length === 0) {
+      this.errorMessage = 'Adicione pelo menos um item válido';
+      return null;
+    }
+
+    const [year, month, day] = formValue.date.split('-').map(Number);
+    const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0);
+
+    return {
+      vehicleId: formValue.vehicleId,
+      vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
+      type: formValue.type,
+      date: correctDate,
+      title: formValue.title.trim(),
+      items: validItems,
+      totalCost: validItems.reduce((sum, item) => sum + item.cost, 0),
+      notes: formValue.notes?.trim() || ''
+    };
+  }
+
+  private handleSuccessfulSubmit(message: string, type: string, isEdit: boolean): void {
+    if (type === 'agendada') {
+      this.successMessage = `${message} ${isEdit ? 'Dados atualizados com sucesso!' : 'Você receberá lembretes por email 3 dias antes e no dia da manutenção.'}`;
+    } else {
+      this.successMessage = isEdit ? `${message} Dados atualizados com sucesso!` : message;
+    }
+    
+    if (isEdit) {
+      this.cancelEdit();
+    } else {
+      this.cancelAdd();
+    }
+    
+    this.loadMaintenances();
+    
+    if (type === 'agendada') {
+      setTimeout(() => this.reminderService.forceCheckReminders(), 2000);
+    }
   }
 
   async markAsCompleted(maintenance: MaintenanceModel): Promise<void> {
@@ -401,13 +355,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
 
     this.isUpdating = true;
     try {
-      const today = new Date();
-      const updates = {
+      const result = await this.maintenanceService.updateMaintenance(maintenance.id!, {
         type: 'realizada' as const,
-        date: today
-      };
-
-      const result = await this.maintenanceService.updateMaintenance(maintenance.id!, updates);
+        date: new Date()
+      });
       
       if (result.success) {
         this.successMessage = 'Manutenção marcada como realizada!';
@@ -422,175 +373,36 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  async onEditSubmit(): Promise<void> {
-    if (this.editForm.valid && this.validateEditDate() && this.maintenanceToEdit) {
-      this.isUpdating = true;
-      this.errorMessage = '';
-      this.successMessage = '';
-
-      try {
-        const formValue = this.editForm.value;
-        const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
-        
-        if (!selectedVehicle) {
-          this.errorMessage = 'Veículo não encontrado';
-          return;
-        }
-
-        const validItems: MaintenanceItem[] = formValue.items
-          .filter((item: any) => item.description && item.description.trim())
-          .map((item: any) => ({
-            description: item.description.trim(),
-            cost: Number(item.cost) || 0
-          }));
-
-        if (validItems.length === 0) {
-          this.errorMessage = 'Adicione pelo menos um item válido';
-          return;
-        }
-
-        const totalCost = validItems.reduce((sum, item) => sum + item.cost, 0);
-        const [year, month, day] = formValue.date.split('-').map(Number);
-        const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0);
-
-        const updates = {
-          vehicleId: formValue.vehicleId,
-          vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
-          type: formValue.type,
-          date: correctDate,
-          title: formValue.title.trim(),
-          items: validItems,
-          totalCost: totalCost,
-          notes: formValue.notes?.trim() || ''
-        };
-
-        const result = await this.maintenanceService.updateMaintenance(this.maintenanceToEdit.id!, updates);
-
-        if (result.success) {
-          this.successMessage = result.message + ' Dados atualizados com sucesso!';
-          this.showEditForm = false;
-          this.maintenanceToEdit = null;
-          await this.loadMaintenances();
-          
-          if (formValue.type === 'agendada') {
-            setTimeout(() => {
-              this.reminderService.forceCheckReminders();
-            }, 2000);
-          }
-        } else {
-          this.errorMessage = result.message;
-        }
-      } catch (error) {
-        this.errorMessage = 'Erro inesperado ao atualizar manutenção';
-      } finally {
-        this.isUpdating = false;
-      }
-    } else {
-      this.markFormGroupTouched(this.editForm);
-      if (!this.validateEditDate()) {
-      } else {
-        this.errorMessage = 'Por favor, corrija os erros no formulário';
-      }
-    }
+  // Operações de modal consolidadas
+  showEditModal(maintenance: MaintenanceModel): void {
+    this.maintenanceToEdit = maintenance;
+    this.showEditForm = true;
+    this.populateEditForm(maintenance);
   }
 
-  cancelEdit(): void {
-    this.showEditForm = false;
-    this.maintenanceToEdit = null;
-    this.errorMessage = '';
-    this.successMessage = '';
-  }
+  private populateEditForm(maintenance: MaintenanceModel): void {
+    const itemsArray = this.editForm.get('items') as FormArray;
+    itemsArray.clear();
 
-  canEdit(maintenance: MaintenanceModel): boolean {
-    return maintenance.type === 'agendada';
-  }
+    maintenance.items.forEach(item => {
+      itemsArray.push(this.formBuilder.group({
+        description: [item.description, Validators.required],
+        cost: [item.cost, [Validators.required, Validators.min(0)]]
+      }));
+    });
 
-  async onSubmit(): Promise<void> {
-    if (this.maintenanceForm.valid && this.validateMaintenanceDate()) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      this.successMessage = '';
-
-      try {
-        const formValue = this.maintenanceForm.value;
-        const selectedVehicle = this.vehicles.find(v => v.id === formValue.vehicleId);
-        
-        if (!selectedVehicle) {
-          this.errorMessage = 'Veículo não encontrado';
-          return;
-        }
-
-        const validItems: MaintenanceItem[] = formValue.items
-          .filter((item: any) => item.description && item.description.trim())
-          .map((item: any) => ({
-            description: item.description.trim(),
-            cost: Number(item.cost) || 0
-          }));
-
-        if (validItems.length === 0) {
-          this.errorMessage = 'Adicione pelo menos um item válido';
-          return;
-        }
-
-        const totalCost = validItems.reduce((sum, item) => sum + item.cost, 0);
-        const [year, month, day] = formValue.date.split('-').map(Number);
-        const correctDate = new Date(year, month - 1, day, 12, 0, 0, 0);
-
-        const maintenance: Omit<MaintenanceModel, 'id' | 'userId' | 'createdAt'> = {
-          vehicleId: formValue.vehicleId,
-          vehicleName: `${selectedVehicle.brand} ${selectedVehicle.model} (${selectedVehicle.year})`,
-          type: formValue.type,
-          date: correctDate,
-          title: formValue.title.trim(),
-          items: validItems,
-          totalCost: totalCost,
-          notes: formValue.notes?.trim() || ''
-        };
-
-        const result = await this.maintenanceService.addMaintenance(maintenance);
-
-        if (result.success) {
-          if (formValue.type === 'agendada') {
-            this.successMessage = `${result.message} Você receberá lembretes por email 3 dias antes e no dia da manutenção.`;
-          } else {
-            this.successMessage = result.message;
-          }
-          
-          this.resetForm();
-          this.showAddForm = false;
-          await this.loadMaintenances();
-          
-          if (formValue.type === 'agendada') {
-            setTimeout(() => {
-              this.reminderService.forceCheckReminders();
-            }, 2000);
-          }
-        } else {
-          this.errorMessage = result.message;
-        }
-      } catch (error) {
-        this.errorMessage = 'Erro inesperado ao salvar manutenção';
-      } finally {
-        this.isLoading = false;
-      }
-    } else {
-      this.markFormGroupTouched(this.maintenanceForm);
-      if (!this.validateMaintenanceDate()) {
-      } else {
-        this.errorMessage = 'Por favor, corrija os erros no formulário';
-      }
-    }
+    this.editForm.patchValue({
+      vehicleId: maintenance.vehicleId,
+      type: maintenance.type,
+      title: maintenance.title,
+      date: new Date(maintenance.date).toISOString().split('T')[0],
+      notes: maintenance.notes || ''
+    });
   }
 
   showDeleteModal(maintenance: MaintenanceModel): void {
     this.maintenanceToDelete = maintenance;
     this.showDeleteConfirm = true;
-  }
-
-  cancelDelete(): void {
-    this.showDeleteConfirm = false;
-    this.maintenanceToDelete = null;
-    this.isDeleting = false;
   }
 
   async confirmDelete(): Promise<void> {
@@ -601,8 +413,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       const result = await this.maintenanceService.deleteMaintenance(this.maintenanceToDelete.id);
       if (result.success) {
         this.successMessage = result.message;
-        this.showDeleteConfirm = false;
-        this.maintenanceToDelete = null;
+        this.cancelDelete();
         await this.loadMaintenances();
       } else {
         this.errorMessage = result.message;
@@ -614,16 +425,55 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Métodos de cancelamento consolidados
   cancelAdd(): void {
     this.showAddForm = false;
-    this.resetForm();
+    this.resetForm(this.maintenanceForm);
+    this.clearMessages();
+  }
+
+  cancelEdit(): void {
+    this.showEditForm = false;
+    this.maintenanceToEdit = null;
+    this.clearMessages();
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm = false;
+    this.maintenanceToDelete = null;
+    this.isDeleting = false;
+  }
+
+  // Métodos utilitários consolidados
+  private validateDate(isEdit = false): boolean {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const type = form.get('type')?.value;
+    const date = form.get('date')?.value;
+
+    if (!type || !date) return false;
+    
+    if (type === 'agendada' && (!isEdit || this.maintenanceToEdit?.type === 'agendada') && date < this.minDate) {
+      this.errorMessage = 'Manutenções agendadas não podem ser marcadas para datas passadas';
+      return false;
+    }
+    return true;
+  }
+
+  private resetForm(form: FormGroup): void {
+    form.reset();
+    const itemsArray = form.get('items') as FormArray;
+    itemsArray.clear();
+    itemsArray.push(this.createItemFormGroup());
+  }
+
+  private clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';
   }
 
-  private resetForm(): void {
-    this.maintenanceForm.reset();
-    this.initializeForm();
+  private showTemporaryMessage(message: string): void {
+    this.errorMessage = message;
+    setTimeout(() => this.errorMessage = '', 4000);
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
@@ -645,18 +495,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.maintenanceForm.get(fieldName);
-    if (fieldName === 'date') {
-      const hasBasicError = !!(field && field.invalid && (field.dirty || field.touched));
-      const hasPastDateError = !!(field?.errors?.['pastDate']);
-      return hasBasicError || hasPastDateError;
-    }
-    return !!(field && field.invalid && (field.dirty || field.touched));
-  }
-
-  isEditFieldInvalid(fieldName: string): boolean {
-    const field = this.editForm.get(fieldName);
+  isFieldInvalid(fieldName: string, isEdit = false): boolean {
+    const form = isEdit ? this.editForm : this.maintenanceForm;
+    const field = form.get(fieldName);
+    
     if (fieldName === 'date') {
       const hasBasicError = !!(field && field.invalid && (field.dirty || field.touched));
       const hasPastDateError = !!(field?.errors?.['pastDate']);
@@ -668,4 +510,18 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   goToDashboard(): void {
     this.router.navigate(['/dashboard']);
   }
+
+  // Getters para compatibilidade com template
+  get itemsFormArray(): FormArray { return this.maintenanceForm.get('items') as FormArray; }
+  get editItemsFormArray(): FormArray { return this.editForm.get('items') as FormArray; }
+  getEditItemsControls() { return this.getItemsControls(true); }
+  addEditItem(): void { this.addItem(true); }
+  removeEditItem(index: number): void { this.removeItem(index, true); }
+  calculateEditTotal(): number { return this.calculateTotal(true); }
+  getEditMinDate(): string { return this.getMinDate(true); }
+  getEditMaxDate(): string { return this.getMaxDate(true); }
+  getEditDateErrorMessage(): string { return this.getDateErrorMessage(true); }
+  getEditDateHelperText(): string { return this.getDateHelperText(true); }
+  isEditFieldInvalid(fieldName: string): boolean { return this.isFieldInvalid(fieldName, true); }
+  async onEditSubmit(): Promise<void> { return this.onSubmit(true); }
 }
