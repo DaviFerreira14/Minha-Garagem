@@ -22,8 +22,4 @@ export class FooterComponent {
   goToTerms(): void {
     this.router.navigate(['/terms']);
   }
-
-  goToSupport(): void {
-    window.open('mailto:suporte@minhagaragem.com.br?subject=Suporte - Minha Garagem', '_blank');
-  }
 }

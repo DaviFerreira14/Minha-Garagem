@@ -1,13 +1,7 @@
-<!-- expenses.component.html -->
 <div class="expenses-container">
-  
-  <!-- Navbar Component -->
   <app-navbar></app-navbar>
 
-  <!-- Conteúdo Principal -->
   <div class="container mt-4">
-    
-    <!-- Header -->
     <div class="row mb-4">
       <div class="col-12 col-md-8 mb-3 mb-md-0">
         <h2 class="mb-0">
@@ -18,13 +12,11 @@
       </div>
       <div class="col-12 col-md-4 text-center text-md-end">
         <button class="btn btn-primary w-100 w-md-auto" (click)="showAddForm = !showAddForm">
-          <i class="fas fa-plus me-2"></i>
-          Novo Gasto
+          <i class="fas fa-plus me-2"></i>Novo Gasto
         </button>
       </div>
     </div>
 
-    <!-- Resumo de Gastos -->
     <div class="row mb-4" *ngIf="expenseSummary">
       <div class="col-md-4 col-sm-6 mb-3">
         <div class="summary-card">
@@ -64,19 +56,16 @@
       </div>
     </div>
 
-    <!-- Filtros -->
     <div class="row mb-4">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
             <h5 class="mb-0">
-              <i class="fas fa-filter me-2"></i>
-              Filtros
+              <i class="fas fa-filter me-2"></i>Filtros
             </h5>
           </div>
           <div class="card-body">
             <div class="row">
-              <!-- Período -->
               <div class="col-md-3 col-12 mb-3">
                 <label class="form-label">Período</label>
                 <select class="form-select" [(ngModel)]="selectedPeriodFilter" (change)="filterExpenses()">
@@ -87,7 +76,6 @@
                 </select>
               </div>
 
-              <!-- Mês -->
               <div class="col-md-2 col-12 mb-3" *ngIf="selectedPeriodFilter === 'month'">
                 <label class="form-label">Mês</label>
                 <select class="form-select" [(ngModel)]="selectedMonth" (change)="filterExpenses()">
@@ -106,7 +94,6 @@
                 </select>
               </div>
 
-              <!-- Ano -->
               <div class="col-md-2 col-12 mb-3" *ngIf="selectedPeriodFilter === 'month' || selectedPeriodFilter === 'year'">
                 <label class="form-label">Ano</label>
                 <select class="form-select" [(ngModel)]="selectedYear" (change)="filterExpenses()">
@@ -116,7 +103,6 @@
                 </select>
               </div>
 
-              <!-- Veículo -->
               <div class="col-md-3 col-12 mb-3">
                 <label class="form-label">Veículo</label>
                 <select class="form-select" [(ngModel)]="selectedVehicleFilter" (change)="filterExpenses()">
@@ -127,7 +113,6 @@
                 </select>
               </div>
 
-              <!-- Categoria -->
               <div class="col-md-2 col-12 mb-3">
                 <label class="form-label">Categoria</label>
                 <select class="form-select" [(ngModel)]="selectedCategoryFilter" (change)="filterExpenses()">
@@ -143,20 +128,17 @@
       </div>
     </div>
 
-    <!-- Formulário de Adicionar Gasto -->
     <div class="row mb-4" *ngIf="showAddForm">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
             <h5 class="mb-0">
-              <i class="fas fa-plus me-2"></i>
-              Adicionar Novo Gasto
+              <i class="fas fa-plus me-2"></i>Adicionar Novo Gasto
             </h5>
           </div>
           <div class="card-body">
             <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()">
               <div class="row">
-                <!-- Veículo -->
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Veículo *</label>
                   <select class="form-select" formControlName="vehicleId" [class.is-invalid]="isFieldInvalid('vehicleId')">
@@ -165,12 +147,9 @@
                       {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})
                     </option>
                   </select>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('vehicleId')">
-                    Selecione um veículo
-                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('vehicleId')">Selecione um veículo</div>
                 </div>
 
-                <!-- Categoria -->
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Categoria *</label>
                   <select class="form-select" formControlName="category" [class.is-invalid]="isFieldInvalid('category')">
@@ -179,12 +158,9 @@
                       {{ category.name }}
                     </option>
                   </select>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('category')">
-                    Selecione uma categoria
-                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('category')">Selecione uma categoria</div>
                 </div>
 
-                <!-- Subcategoria -->
                 <div class="col-md-6 mb-3" *ngIf="expenseForm.get('category')?.value && getSubcategories(expenseForm.get('category')?.value || '').length > 0">
                   <label class="form-label">Subcategoria</label>
                   <select class="form-select" formControlName="subcategory">
@@ -195,80 +171,42 @@
                   </select>
                 </div>
 
-                <!-- Descrição -->
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Descrição *</label>
-                  <input 
-                    type="text" 
-                    class="form-control" 
-                    formControlName="description"
-                    placeholder="Ex: Abastecimento completo"
-                    [class.is-invalid]="isFieldInvalid('description')">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('description')">
-                    Digite uma descrição
-                  </div>
+                  <input type="text" class="form-control" formControlName="description" placeholder="Ex: Abastecimento completo" [class.is-invalid]="isFieldInvalid('description')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('description')">Digite uma descrição</div>
                 </div>
 
-                <!-- Valor -->
                 <div class="col-md-4 mb-3">
                   <label class="form-label">Valor *</label>
                   <div class="input-group">
                     <span class="input-group-text">R$</span>
-                    <input 
-                      type="number" 
-                      class="form-control" 
-                      formControlName="amount"
-                      placeholder="0,00"
-                      step="0.01"
-                      min="0.01"
-                      [class.is-invalid]="isFieldInvalid('amount')">
+                    <input type="number" class="form-control" formControlName="amount" placeholder="0,00" step="0.01" min="0.01" [class.is-invalid]="isFieldInvalid('amount')">
                   </div>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('amount')">
-                    Digite um valor válido
-                  </div>
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('amount')">Digite um valor válido</div>
                 </div>
 
-                <!-- Data -->
                 <div class="col-md-4 mb-3">
                   <label class="form-label">Data *</label>
-                  <input 
-                    type="date" 
-                    class="form-control" 
-                    formControlName="date"
-                    [max]="minDate"
-                    [class.is-invalid]="isFieldInvalid('date')">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
-                    Selecione uma data
-                  </div>
+                  <input type="date" class="form-control" formControlName="date" [max]="minDate" [class.is-invalid]="isFieldInvalid('date')">
+                  <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">Selecione uma data</div>
                 </div>
 
-                <!-- Quilometragem -->
                 <div class="col-md-4 mb-3">
                   <label class="form-label">Quilometragem</label>
                   <div class="input-group">
-                    <input 
-                      type="number" 
-                      class="form-control" 
-                      formControlName="odometer"
-                      placeholder="Ex: 45000"
-                      min="0">
+                    <input type="number" class="form-control" formControlName="odometer" placeholder="Ex: 45000" min="0">
                     <span class="input-group-text">km</span>
                   </div>
                   <small class="form-text text-muted">Quilometragem no momento do gasto</small>
                 </div>
 
-                <!-- Observações -->
                 <div class="col-12 mb-3">
                   <label class="form-label">Observações</label>
-                  <textarea 
-                    class="form-control" 
-                    formControlName="notes"
-                    rows="3"
-                    placeholder="Observações adicionais sobre o gasto..."></textarea>
+                  <textarea class="form-control" formControlName="notes" rows="3" placeholder="Observações adicionais sobre o gasto..."></textarea>
                 </div>
               </div>
 
-              <!-- Botões -->
               <div class="row">
                 <div class="col-12">
                   <div class="d-flex flex-column flex-md-row gap-2">
@@ -289,23 +227,18 @@
       </div>
     </div>
 
-    <!-- Mensagens -->
     <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
-      <i class="fas fa-check-circle me-2"></i>
-      {{ successMessage }}
+      <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
       <button type="button" class="btn-close" (click)="successMessage = ''"></button>
     </div>
 
     <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage">
-      <i class="fas fa-exclamation-circle me-2"></i>
-      {{ errorMessage }}
+      <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
       <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
     </div>
 
-    <!-- Lista de Gastos -->
     <div class="row">
       <div class="col-12">
-        <!-- Loading -->
         <div class="text-center py-5" *ngIf="isLoadingExpenses">
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Carregando...</span>
@@ -313,7 +246,6 @@
           <p class="mt-2 text-muted">Carregando gastos...</p>
         </div>
 
-        <!-- Estado Vazio -->
         <div class="text-center py-5" *ngIf="!isLoadingExpenses && filteredExpenses.length === 0 && !showAddForm">
           <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
           <h4 class="text-muted">Nenhum gasto encontrado</h4>
@@ -322,34 +254,28 @@
             <span *ngIf="vehicles.length > 0">Adicione seu primeiro gasto para começar o controle financeiro.</span>
           </p>
           <button class="btn btn-primary" (click)="showAddForm = true" *ngIf="vehicles.length > 0">
-            <i class="fas fa-plus me-2"></i>
-            Adicionar Primeiro Gasto
+            <i class="fas fa-plus me-2"></i>Adicionar Primeiro Gasto
           </button>
           <button class="btn btn-outline-primary" (click)="goToDashboard()" *ngIf="vehicles.length === 0">
-            <i class="fas fa-car me-2"></i>
-            Adicionar Veículo
+            <i class="fas fa-car me-2"></i>Adicionar Veículo
           </button>
         </div>
 
-        <!-- Lista de Gastos -->
         <div *ngIf="!isLoadingExpenses && filteredExpenses.length > 0">
           <div class="card">
             <div class="card-header">
               <h5 class="mb-0">
-                <i class="fas fa-list me-2"></i>
-                Gastos - {{ getPeriodDisplayName() }}
+                <i class="fas fa-list me-2"></i>Gastos - {{ getPeriodDisplayName() }}
                 <span class="badge bg-primary ms-2">{{ filteredExpenses.length }}</span>
               </h5>
             </div>
             <div class="card-body p-0">
-              <!-- Mobile: Cards -->
               <div class="d-block d-md-none">
                 <div *ngFor="let expense of filteredExpenses" class="expense-mobile-card">
                   <div class="d-flex justify-content-between align-items-start mb-2">
                     <div class="d-flex align-items-center">
                       <i [class]="getCategoryById(expense.category)?.icon || 'fas fa-circle'" 
-                         [style.color]="getCategoryById(expense.category)?.color || '#6c757d'"
-                         class="me-2"></i>
+                         [style.color]="getCategoryById(expense.category)?.color || '#6c757d'" class="me-2"></i>
                       <div>
                         <strong>{{ expense.description }}</strong>
                         <br><small class="text-muted">{{ getCategoryById(expense.category)?.name }}</small>
@@ -369,7 +295,6 @@
                 </div>
               </div>
 
-              <!-- Desktop: Table -->
               <div class="table-responsive d-none d-md-block">
                 <table class="table table-hover mb-0">
                   <thead class="table-light">
@@ -384,14 +309,11 @@
                   </thead>
                   <tbody>
                     <tr *ngFor="let expense of filteredExpenses">
-                      <td>
-                        <small class="text-muted">{{ formatDate(expense.date) }}</small>
-                      </td>
+                      <td><small class="text-muted">{{ formatDate(expense.date) }}</small></td>
                       <td>
                         <span class="d-flex align-items-center">
                           <i [class]="getCategoryById(expense.category)?.icon || 'fas fa-circle'" 
-                             [style.color]="getCategoryById(expense.category)?.color || '#6c757d'"
-                             class="me-2"></i>
+                             [style.color]="getCategoryById(expense.category)?.color || '#6c757d'" class="me-2"></i>
                           <div>
                             <small class="fw-bold">{{ getCategoryById(expense.category)?.name || 'Categoria' }}</small>
                             <br *ngIf="expense.subcategory">
@@ -413,13 +335,9 @@
                           <i class="fas fa-tachometer-alt me-1"></i>{{ expense.odometer }} km
                         </small>
                       </td>
+                      <td><span class="fw-bold text-success">{{ formatCurrency(expense.amount) }}</span></td>
                       <td>
-                        <span class="fw-bold text-success">{{ formatCurrency(expense.amount) }}</span>
-                      </td>
-                      <td>
-                        <button class="btn btn-outline-danger btn-sm" 
-                                (click)="showDeleteModal(expense)"
-                                title="Excluir gasto">
+                        <button class="btn btn-outline-danger btn-sm" (click)="showDeleteModal(expense)" title="Excluir gasto">
                           <i class="fas fa-trash"></i>
                         </button>
                       </td>
@@ -434,16 +352,13 @@
     </div>
   </div>
 
-  <!-- Footer Component -->
   <app-footer></app-footer>
 
-  <!-- Modal de Confirmação de Exclusão -->
   <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h4 class="modal-title">
-          <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-          Confirmar Exclusão
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirmar Exclusão
         </h4>
       </div>
       <div class="modal-body">
@@ -455,8 +370,7 @@
           </div>
           <small class="text-muted d-block">
             <i [class]="getCategoryById(expenseToDelete.category)?.icon || 'fas fa-circle'" 
-               [style.color]="getCategoryById(expenseToDelete.category)?.color || '#6c757d'"
-               class="me-1"></i>{{ getCategoryById(expenseToDelete.category)?.name }}
+               [style.color]="getCategoryById(expenseToDelete.category)?.color || '#6c757d'" class="me-1"></i>{{ getCategoryById(expenseToDelete.category)?.name }}
           </small>
           <small class="text-muted d-block">
             <i class="fas fa-car me-1"></i>{{ expenseToDelete.vehicleName }}
@@ -466,8 +380,7 @@
           </small>
         </div>
         <p class="warning-text">
-          <i class="fas fa-info-circle me-1"></i>
-          Esta ação não pode ser desfeita.
+          <i class="fas fa-info-circle me-1"></i>Esta ação não pode ser desfeita.
         </p>
       </div>
       <div class="modal-footer">

@@ -1,4 +1,3 @@
-// expenses.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -26,26 +25,22 @@ export class ExpensesComponent implements OnInit {
   vehicles: Vehicle[] = [];
   categories: ExpenseCategory[] = [];
   
-  // Estados
   showAddForm = false;
   isLoading = false;
   isLoadingExpenses = true;
   successMessage = '';
   errorMessage = '';
   
-  // Estados do modal
   showDeleteConfirm = false;
   expenseToDelete: Expense | null = null;
   isDeleting = false;
   
-  // Filtros
   selectedVehicleFilter = '';
   selectedCategoryFilter = '';
   selectedPeriodFilter = 'month';
   selectedMonth = '';
   selectedYear = '';
   
-  // Resumos
   expenseSummary: ExpenseSummary | null = null;
   minDate = '';
 
@@ -101,7 +96,6 @@ export class ExpensesComponent implements OnInit {
     try {
       this.vehicles = await firstValueFrom(this.vehicleService.getVehicles());
     } catch (error) {
-      console.error('Erro ao carregar veículos:', error);
       this.errorMessage = 'Erro ao carregar veículos';
     }
   }
@@ -113,7 +107,6 @@ export class ExpensesComponent implements OnInit {
       this.filterExpenses();
       this.calculateSummary();
     } catch (error) {
-      console.error('Erro ao carregar gastos:', error);
       this.errorMessage = 'Erro ao carregar gastos';
     } finally {
       this.isLoadingExpenses = false;
@@ -130,8 +123,7 @@ export class ExpensesComponent implements OnInit {
   }
 
   getSubcategories(categoryId: string): string[] {
-    const category = this.categories.find(cat => cat.id === categoryId);
-    return category?.subcategories || [];
+    return this.categories.find(cat => cat.id === categoryId)?.subcategories || [];
   }
 
   getCategoryById(categoryId: string): ExpenseCategory | undefined {
@@ -245,7 +237,6 @@ export class ExpensesComponent implements OnInit {
           this.errorMessage = result.message;
         }
       } catch (error) {
-        console.error('Erro ao salvar gasto:', error);
         this.errorMessage = 'Erro inesperado ao salvar gasto';
       } finally {
         this.isLoading = false;
@@ -256,7 +247,6 @@ export class ExpensesComponent implements OnInit {
     }
   }
 
-  // Modal de exclusão
   showDeleteModal(expense: Expense): void {
     this.expenseToDelete = expense;
     this.showDeleteConfirm = true;
@@ -283,7 +273,6 @@ export class ExpensesComponent implements OnInit {
         this.errorMessage = result.message;
       }
     } catch (error) {
-      console.error('Erro ao deletar gasto:', error);
       this.errorMessage = 'Erro ao deletar gasto';
     } finally {
       this.isDeleting = false;
@@ -321,7 +310,6 @@ export class ExpensesComponent implements OnInit {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  // Formatação
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -351,7 +339,6 @@ export class ExpensesComponent implements OnInit {
     return months[parseInt(month) - 1] || month;
   }
 
-  // Navegação
   goToDashboard(): void {
     this.router.navigate(['/dashboard']);
   }

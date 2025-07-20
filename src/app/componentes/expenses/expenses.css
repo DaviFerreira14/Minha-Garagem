@@ -1,4 +1,3 @@
-/* Base Container */
 .expenses-container {
   min-height: 100vh;
   display: flex;
@@ -13,7 +12,6 @@
   padding-bottom: 40px;
 }
 
-/* Text Colors */
 .container h2, strong { color: #ffffff; }
 .text-muted { color: #888888 !important; }
 .text-primary { color: #3b82f6 !important; }
@@ -22,7 +20,6 @@
 .text-warning { color: #f59e0b !important; }
 small { color: #888888; }
 
-/* Summary Cards */
 .summary-card {
   background: linear-gradient(145deg, #1a1a1a 0%, #2a2a2a 100%);
   border-radius: 12px;
@@ -69,7 +66,6 @@ small { color: #888888; }
   font-size: 0.9rem;
 }
 
-/* Form Controls */
 .form-control, .form-select {
   border-radius: 10px;
   border: 2px solid #404040;
@@ -103,7 +99,6 @@ small { color: #888888; }
 .form-text { color: #888888; }
 .form-select option { background: #2a2a2a; color: #ffffff; }
 
-/* Buttons */
 .btn {
   border-radius: 10px;
   font-weight: 600;
@@ -170,7 +165,6 @@ small { color: #888888; }
   box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
 }
 
-/* Cards */
 .card {
   background: linear-gradient(145deg, #1a1a1a 0%, #2a2a2a 100%);
   border-radius: 15px;
@@ -197,7 +191,6 @@ small { color: #888888; }
 
 .card-body { padding: 1.5rem; }
 
-/* Table Styles */
 .table {
   margin-bottom: 0;
   color: #e5e7eb;
@@ -228,7 +221,6 @@ small { color: #888888; }
   color: #ffffff !important;
 }
 
-/* Mobile Cards */
 .expense-mobile-card {
   padding: 15px;
   border-bottom: 1px solid #333333;
@@ -243,7 +235,6 @@ small { color: #888888; }
   background: rgba(59, 130, 246, 0.05);
 }
 
-/* Input Groups */
 .input-group-text {
   border-radius: 10px 0 0 10px;
   border: 2px solid #404040;
@@ -259,7 +250,6 @@ small { color: #888888; }
   color: #60a5fa;
 }
 
-/* Alerts */
 .alert {
   border-radius: 10px;
   border: none;
@@ -278,7 +268,6 @@ small { color: #888888; }
   border: 1px solid #ef4444;
 }
 
-/* Loading & Empty States */
 .spinner-border { border-color: #404040; border-top-color: #3b82f6; }
 .spinner-border-sm { width: 1rem; height: 1rem; }
 
@@ -286,7 +275,6 @@ small { color: #888888; }
 .text-center.py-5 h4 { color: #ffffff; }
 .text-center.py-5 p { color: #888888; }
 
-/* Badge & Misc */
 .badge {
   font-size: 0.75rem;
   padding: 0.5rem 0.75rem;
@@ -298,7 +286,6 @@ small { color: #888888; }
 .btn-close { filter: invert(1); opacity: 0.8; }
 .btn-close:hover { opacity: 1; }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -392,7 +379,6 @@ small { color: #888888; }
   cursor: not-allowed;
 }
 
-/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -403,19 +389,16 @@ small { color: #888888; }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Responsive - Desktop */
 @media (max-width: 1200px) {
   .summary-card { padding: 15px; gap: 12px; }
   .btn { font-size: 0.875rem; }
 }
 
-/* Responsive - Tablet */
 @media (max-width: 992px) {
   .container { padding-top: 90px; }
   .summary-card { margin-bottom: 1rem; }
 }
 
-/* Responsive - Mobile */
 @media (max-width: 768px) {
   .container { padding: 80px 15px 30px; }
   
@@ -437,7 +420,6 @@ small { color: #888888; }
   .expense-mobile-card { padding: 12px; }
 }
 
-/* Responsive - Small Mobile */
 @media (max-width: 576px) {
   .container { padding: 70px 10px 20px; }
   h2 { font-size: 1.5rem; }
