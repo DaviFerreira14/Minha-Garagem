@@ -1,0 +1,260 @@
+<!-- edit-maintenance.component.html -->
+<div class="maintenance-container">
+  <app-navbar></app-navbar>
+  
+  <div class="container mt-4">
+    
+    <!-- Loading -->
+    <div class="text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-2 text-muted">Carregando dados da manutenção...</p>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <div *ngIf="!isLoading && maintenance">
+      
+      <!-- Header -->
+      <div class="row mb-4">
+        <div class="col-12 col-md-8 mb-3 mb-md-0">
+          <h2 class="mb-0"><i class="fas fa-edit me-2 text-warning"></i>Editar Manutenção</h2>
+          <p class="text-muted mb-0">{{ maintenance.title }}</p>
+        </div>
+        <div class="col-12 col-md-4 text-center text-md-end">
+          <button class="btn btn-secondary w-100 w-md-auto" (click)="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>Voltar
+          </button>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas -->
+      <div class="row mb-4" *ngIf="maintenance.type === 'agendada'">
+        <div class="col-12">
+          <div class="alert alert-info">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+              <div>
+                <i class="fas fa-calendar-check me-2"></i>
+                <strong>Manutenção Agendada</strong> - Você pode marcá-la como realizada
+              </div>
+              <button class="btn btn-success mt-2 mt-md-0" 
+                (click)="markAsCompleted()" [disabled]="isUpdating">
+                <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="fas fa-check me-1" *ngIf="!isUpdating"></i>
+                {{ isUpdating ? 'Marcando...' : 'Marcar como Realizada' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="mb-0">
+                <i class="fas fa-wrench me-2"></i>Dados da Manutenção
+              </h5>
+            </div>
+            <div class="card-body">
+              <form [formGroup]="editForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                  
+                  <!-- Veículo -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Veículo *</label>
+                    <select class="form-select" formControlName="vehicleId" 
+                      [class.is-invalid]="isFieldInvalid('vehicleId')">
+                      <option value="">Selecione um veículo</option>
+                      <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+                        {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})
+                      </option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('vehicleId')">
+                      Selecione um veículo
+                    </div>
+                  </div>
+
+                  <!-- Tipo -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Tipo *</label>
+                    <select class="form-select" formControlName="type" 
+                      [class.is-invalid]="isFieldInvalid('type')">
+                      <option value="">Selecione o tipo</option>
+                      <option value="realizada">Manutenção Realizada</option>
+                      <option value="agendada">Manutenção Agendada</option>
+                    </select>
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('type')">
+                      Selecione o tipo de manutenção
+                    </div>
+                  </div>
+
+                  <!-- Título -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Título da Manutenção *</label>
+                    <input type="text" class="form-control" formControlName="title" placeholder="Ex: Revisão de 10.000 km" 
+                      [class.is-invalid]="isFieldInvalid('title')">
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('title')">
+                      Digite um título para a manutenção
+                    </div>
+                  </div>
+
+                  <!-- Data -->
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Data *</label>
+                    <input type="date" class="form-control" formControlName="date" 
+                      [min]="getMinDate()" 
+                      [max]="getMaxDate()" 
+                      [class.is-invalid]="isFieldInvalid('date')" 
+                      [class.is-valid]="editForm.get('date')?.valid && editForm.get('date')?.touched">
+                    
+                    <div class="invalid-feedback" *ngIf="isFieldInvalid('date')">
+                      {{ getDateErrorMessage() }}
+                    </div>
+                    
+                    <div class="form-text" 
+                      *ngIf="!isFieldInvalid('date') && editForm.get('type')?.value">
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {{ getDateHelperText() }}
+                      </small>
+                    </div>
+                  </div>
+                  
+                  <!-- Itens da Manutenção -->
+                  <div class="col-12 mb-3">
+                    <label class="form-label">Itens da Manutenção</label>
+                    <div formArrayName="items">
+                      <div *ngFor="let item of getItemsControls(); let i = index" 
+                        [formGroupName]="i" class="border rounded p-3 mb-2 bg-light">
+                        <div class="row">
+                          <div class="col-md-6 mb-2">
+                            <input type="text" class="form-control" formControlName="description" placeholder="Ex: Troca de óleo">
+                          </div>
+                          <div class="col-md-4 mb-2">
+                            <div class="input-group">
+                              <span class="input-group-text">R$</span>
+                              <input type="number" class="form-control" formControlName="cost" placeholder="0,00" step="0.01">
+                            </div>
+                          </div>
+                          <div class="col-md-2 mb-2">
+                            <button type="button" class="btn btn-outline-danger w-100" 
+                              (click)="removeItem(i)" 
+                              [disabled]="getItemsControls().length === 1">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                      (click)="addItem()">
+                      <i class="fas fa-plus me-2"></i>Adicionar Item
+                    </button>
+                  </div>
+
+                  <!-- Observações -->
+                  <div class="col-12 mb-3">
+                    <label class="form-label">Observações</label>
+                    <textarea class="form-control" formControlName="notes" rows="3" 
+                      placeholder="Observações adicionais sobre a manutenção..."></textarea>
+                  </div>
+
+                  <!-- Total -->
+                  <div class="col-12 mb-3">
+                    <div class="alert alert-info">
+                      <strong>Total: R$ {{ calculateTotal() | number:'1.2-2' }}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botões -->
+                <div class="row">
+                  <div class="col-12">
+                    <div class="d-flex flex-column flex-md-row gap-2">
+                      <button type="button" class="btn btn-secondary" (click)="goBack()">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                      </button>
+                      <button type="submit" class="btn btn-warning text-dark" [disabled]="isUpdating">
+                        <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-2"></span>
+                        <i class="fas fa-save me-2" *ngIf="!isUpdating"></i>
+                        {{ isUpdating ? 'Atualizando...' : 'Atualizar Manutenção' }}
+                      </button>
+                      <button type="button" class="btn btn-outline-danger" (click)="showDeleteModal()">
+                        <i class="fas fa-trash me-2"></i>Excluir Manutenção
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensagens -->
+      <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+        <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      </div>
+
+      <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage">
+        <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <app-footer></app-footer>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4 class="modal-title">
+          <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirmar Exclusão
+        </h4>
+      </div>
+      <div class="modal-body">
+        <p>Tem certeza que deseja excluir esta manutenção?</p>
+        <div class="maintenance-info-modal" *ngIf="maintenance">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>{{ maintenance.title }}</strong>
+            <span class="badge" 
+              [class.bg-success]="maintenance.type === 'realizada'" 
+              [class.bg-warning]="maintenance.type === 'agendada'" 
+              [class.text-dark]="maintenance.type === 'agendada'">
+              {{ maintenance.type === 'realizada' ? 'Realizada' : 'Agendada' }}
+            </span>
+          </div>
+          <small class="text-muted d-block">
+            <i class="fas fa-car me-1"></i>{{ maintenance.vehicleName }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="fas fa-calendar me-1"></i>{{ maintenance.date | date:'dd/MM/yyyy' }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="fas fa-dollar-sign me-1"></i>Total: R$ {{ maintenance.totalCost | number:'1.2-2' }}
+          </small>
+        </div>
+        <p class="warning-text">
+          <i class="fas fa-info-circle me-1"></i>Esta ação não pode ser desfeita.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelDelete()">
+          <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting">
+          <span *ngIf="isDeleting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!isDeleting" class="fas fa-trash me-1"></i>
+          {{ isDeleting ? 'Excluindo...' : 'Confirmar Exclusão' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

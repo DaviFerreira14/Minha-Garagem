@@ -1,4 +1,4 @@
-<!-- maintenance.component.html - Otimizado -->
+<!-- maintenance.component.html - Versão simplificada -->
 <div class="maintenance-container">
   <app-navbar></app-navbar>
   
@@ -11,7 +11,7 @@
         <p class="text-muted mb-0">Gerencie as manutenções dos seus veículos</p>
       </div>
       <div class="col-12 col-md-4 text-center text-md-end">
-        <button class="btn btn-primary w-100 w-md-auto" (click)="showAddForm = !showAddForm">
+        <button class="btn btn-primary w-100 w-md-auto" (click)="goToAddMaintenance()">
           <i class="fas fa-plus me-2"></i>Nova Manutenção
         </button>
       </div>
@@ -38,163 +38,15 @@
       </div>
     </div>
 
-    <!-- Formulário Unificado (Adicionar/Editar) -->
-    <div class="row mb-4" *ngIf="showAddForm || showEditForm">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header" [class.bg-warning]="showEditForm" [class.text-dark]="showEditForm">
-            <h5 class="mb-0">
-              <i class="fas fa-wrench me-2"></i>
-              {{ showEditForm ? 'Editar Manutenção: ' + maintenanceToEdit?.title : 'Adicionar Nova Manutenção' }}
-            </h5>
-          </div>
-          <div class="card-body">
-            <form [formGroup]="showEditForm ? editForm : maintenanceForm" (ngSubmit)="onSubmit(showEditForm)">
-              <div class="row">
-                
-                <!-- Veículo -->
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Veículo *</label>
-                  <select class="form-select" formControlName="vehicleId" 
-                    [class.is-invalid]="isFieldInvalid('vehicleId', showEditForm)">
-                    <option value="">Selecione um veículo</option>
-                    <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
-                      {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})
-                    </option>
-                  </select>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('vehicleId', showEditForm)">
-                    Selecione um veículo
-                  </div>
-                </div>
-
-                <!-- Tipo -->
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Tipo *</label>
-                  <select class="form-select" formControlName="type" 
-                    [class.is-invalid]="isFieldInvalid('type', showEditForm)">
-                    <option value="">Selecione o tipo</option>
-                    <option value="realizada">Manutenção Realizada</option>
-                    <option value="agendada">Manutenção Agendada</option>
-                  </select>
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('type', showEditForm)">
-                    Selecione o tipo de manutenção
-                  </div>
-                </div>
-
-                <!-- Título -->
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Título da Manutenção *</label>
-                  <input type="text" class="form-control" formControlName="title" placeholder="Ex: Revisão de 10.000 km" 
-                    [class.is-invalid]="isFieldInvalid('title', showEditForm)">
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('title', showEditForm)">
-                    Digite um título para a manutenção
-                  </div>
-                </div>
-
-                <!-- Data -->
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Data *</label>
-                  <input type="date" class="form-control" formControlName="date" 
-                    [min]="getMinDate(showEditForm)" 
-                    [max]="getMaxDate(showEditForm)" 
-                    [class.is-invalid]="isFieldInvalid('date', showEditForm)" 
-                    [class.is-valid]="(showEditForm ? editForm : maintenanceForm).get('date')?.valid && (showEditForm ? editForm : maintenanceForm).get('date')?.touched">
-                  
-                  <div class="invalid-feedback" *ngIf="isFieldInvalid('date', showEditForm)">
-                    {{ getDateErrorMessage(showEditForm) }}
-                  </div>
-                  
-                  <div class="form-text" 
-                    *ngIf="!isFieldInvalid('date', showEditForm) && (showEditForm ? editForm : maintenanceForm).get('type')?.value">
-                    <small class="text-muted">
-                      <i class="fas fa-info-circle me-1"></i>
-                      {{ getDateHelperText(showEditForm) }}
-                    </small>
-                  </div>
-                </div>
-                
-                <!-- Itens da Manutenção -->
-                <div class="col-12 mb-3">
-                  <label class="form-label">Itens da Manutenção</label>
-                  <div formArrayName="items">
-                    <div *ngFor="let item of getItemsControls(showEditForm); let i = index" 
-                      [formGroupName]="i" class="border rounded p-3 mb-2 bg-light">
-                      <div class="row">
-                        <div class="col-md-6 mb-2">
-                          <input type="text" class="form-control" formControlName="description" placeholder="Ex: Troca de óleo">
-                        </div>
-                        <div class="col-md-4 mb-2">
-                          <div class="input-group">
-                            <span class="input-group-text">R$</span>
-                            <input type="number" class="form-control" formControlName="cost" placeholder="0,00" step="0.01">
-                          </div>
-                        </div>
-                        <div class="col-md-2 mb-2">
-                          <button type="button" class="btn btn-outline-danger w-100" 
-                            (click)="removeItem(i, showEditForm)" 
-                            [disabled]="getItemsControls(showEditForm).length === 1">
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button type="button" class="btn btn-outline-primary btn-sm" 
-                    (click)="addItem(showEditForm)">
-                    <i class="fas fa-plus me-2"></i>Adicionar Item
-                  </button>
-                </div>
-
-                <!-- Observações -->
-                <div class="col-12 mb-3">
-                  <label class="form-label">Observações</label>
-                  <textarea class="form-control" formControlName="notes" rows="3" 
-                    placeholder="Observações adicionais sobre a manutenção..."></textarea>
-                </div>
-
-                <!-- Total -->
-                <div class="col-12 mb-3">
-                  <div class="alert alert-info">
-                    <strong>Total: R$ {{ calculateTotal(showEditForm) | number:'1.2-2' }}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Botões -->
-              <div class="row">
-                <div class="col-12">
-                  <div class="d-flex flex-column flex-md-row gap-2">
-                    <button type="button" class="btn btn-secondary" 
-                      (click)="showEditForm ? cancelEdit() : cancelAdd()">
-                      <i class="fas fa-times me-2"></i>Cancelar
-                    </button>
-                    <button type="submit" class="btn" 
-                      [class.btn-warning]="showEditForm" [class.text-dark]="showEditForm"
-                      [class.btn-primary]="!showEditForm"
-                      [disabled]="showEditForm ? isUpdating : isLoading">
-                      <span *ngIf="showEditForm ? isUpdating : isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                      <i class="fas fa-save me-2" *ngIf="!(showEditForm ? isUpdating : isLoading)"></i>
-                      {{ showEditForm ? (isUpdating ? 'Atualizando...' : 'Atualizar Manutenção') : (isLoading ? 'Salvando...' : 'Salvar Manutenção') }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Mensagens -->
     <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
       <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
-      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      <button type="button" class="btn-close" (click)="clearMessages()"></button>
     </div>
 
     <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage">
       <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
-      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      <button type="button" class="btn-close" (click)="clearMessages()"></button>
     </div>
 
     <!-- Lista de Manutenções -->
@@ -210,14 +62,14 @@
         </div>
 
         <!-- Estado Vazio -->
-        <div class="text-center py-5" *ngIf="!isLoadingMaintenances && filteredMaintenances.length === 0 && !showAddForm">
+        <div class="text-center py-5" *ngIf="!isLoadingMaintenances && filteredMaintenances.length === 0">
           <i class="fas fa-tools fa-4x text-muted mb-3"></i>
           <h4 class="text-muted">Nenhuma manutenção encontrada</h4>
           <p class="text-muted mb-4">
             {{ vehicles.length === 0 ? 'Primeiro adicione um veículo para registrar manutenções.' : 'Adicione sua primeira manutenção para começar o controle.' }}
           </p>
           <button class="btn" [class.btn-primary]="vehicles.length > 0" [class.btn-outline-primary]="vehicles.length === 0"
-            (click)="vehicles.length > 0 ? (showAddForm = true) : goToDashboard()">
+            (click)="vehicles.length > 0 ? goToAddMaintenance() : goToDashboard()">
             <i class="fas" [class.fa-plus]="vehicles.length > 0" [class.fa-car]="vehicles.length === 0" class="me-2"></i>
             {{ vehicles.length > 0 ? 'Adicionar Primeira Manutenção' : 'Adicionar Veículo' }}
           </button>
@@ -284,7 +136,15 @@
                       <span class="d-none d-md-inline">{{ isUpdating ? 'Marcando...' : 'Marcar como Realizada' }}</span>
                       <span class="d-inline d-md-none">{{ isUpdating ? '...' : 'Realizada' }}</span>
                     </button>
-                    <button class="btn btn-outline-warning btn-sm" (click)="showEditModal(maintenance)">
+                    <button class="btn btn-outline-warning btn-sm" (click)="goToEditMaintenance(maintenance)">
+                      <i class="fas fa-edit me-1"></i>
+                      <span class="d-none d-md-inline">Editar</span>
+                    </button>
+                  </div>
+                  
+                  <!-- Botão de edição para manutenções realizadas -->
+                  <div *ngIf="maintenance.type === 'realizada'">
+                    <button class="btn btn-outline-warning btn-sm w-100" (click)="goToEditMaintenance(maintenance)">
                       <i class="fas fa-edit me-1"></i>
                       <span class="d-none d-md-inline">Editar</span>
                     </button>

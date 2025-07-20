@@ -1,4 +1,3 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { Login } from './componentes/login/login';
 import { Register } from './componentes/register/register';
@@ -12,6 +11,8 @@ import { authGuard } from './guards/auth-guard';
 import { TermsComponent } from './componentes/terms/terms';
 import { PrivacyPolicyComponent } from './componentes/privacy-policy/privacy-policy';
 import { EditVehicle } from './componentes/edit-vehicle/edit-vehicle';
+import { EditMaintenance } from './componentes/edit-maintenance/edit-maintenance';
+import { AddMaintenance } from './componentes/add-maintenance/add-maintenance';
 
 export const routes: Routes = [
     {
@@ -62,6 +63,16 @@ export const routes: Routes = [
     {
         path: 'maintenance',
         component: MaintenanceComponent,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'edit-maintenance',
+        component: EditMaintenance,
+        canActivate: [authGuard]
+    },
+    {
+        path: 'add-maintenance',
+        component: AddMaintenance,
         canActivate: [authGuard]
     },
     {
