@@ -1,4 +1,3 @@
-// maintenance.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -143,7 +142,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
 
     if (!selectedDate || !type) return null;
 
-    // Se está mudando de agendada para agendada, valida data futura
     if (type === 'agendada' && this.maintenanceToEdit?.type === 'agendada' && selectedDate < this.minDate) {
       return { 'pastDate': true };
     }
@@ -157,7 +155,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
 
   getEditMinDate(): string {
     const type = this.editForm?.get('type')?.value;
-    // Se está mudando de agendada para agendada, ou criando nova agendada
     if (type === 'agendada' && this.maintenanceToEdit?.type === 'agendada') {
       return this.minDate;
     }
@@ -368,7 +365,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.filteredMaintenances = filtered;
   }
 
-  // NOVA FUNCIONALIDADE: Abrir formulário de edição
   showEditModal(maintenance: MaintenanceModel): void {
     this.maintenanceToEdit = maintenance;
     this.showEditForm = true;
@@ -376,12 +372,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   }
 
   private populateEditForm(maintenance: MaintenanceModel): void {
-    // Limpar array de itens
     while (this.editItemsFormArray.length !== 0) {
       this.editItemsFormArray.removeAt(0);
     }
 
-    // Adicionar itens da manutenção
     maintenance.items.forEach(item => {
       const itemGroup = this.formBuilder.group({
         description: [item.description, Validators.required],
@@ -390,7 +384,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
       this.editItemsFormArray.push(itemGroup);
     });
 
-    // Formatar data para o input
     const dateValue = new Date(maintenance.date);
     const formattedDate = dateValue.toISOString().split('T')[0];
 
@@ -403,7 +396,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     });
   }
 
-  // NOVA FUNCIONALIDADE: Marcar como realizada
   async markAsCompleted(maintenance: MaintenanceModel): Promise<void> {
     if (maintenance.type !== 'agendada') return;
 
@@ -430,7 +422,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  // NOVA FUNCIONALIDADE: Atualizar manutenção
   async onEditSubmit(): Promise<void> {
     if (this.editForm.valid && this.validateEditDate() && this.maintenanceToEdit) {
       this.isUpdating = true;
@@ -481,7 +472,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
           this.maintenanceToEdit = null;
           await this.loadMaintenances();
           
-          // Se foi marcada como agendada, forçar verificação de lembretes
           if (formValue.type === 'agendada') {
             setTimeout(() => {
               this.reminderService.forceCheckReminders();
@@ -498,7 +488,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     } else {
       this.markFormGroupTouched(this.editForm);
       if (!this.validateEditDate()) {
-        // Mensagem já definida no validateEditDate
       } else {
         this.errorMessage = 'Por favor, corrija os erros no formulário';
       }
@@ -512,7 +501,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.successMessage = '';
   }
 
-  // Verificar se manutenção pode ser editada (apenas agendadas)
   canEdit(maintenance: MaintenanceModel): boolean {
     return maintenance.type === 'agendada';
   }
@@ -588,7 +576,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     } else {
       this.markFormGroupTouched(this.maintenanceForm);
       if (!this.validateMaintenanceDate()) {
-        // Mensagem já definida no validateMaintenanceDate
       } else {
         this.errorMessage = 'Por favor, corrija os erros no formulário';
       }
