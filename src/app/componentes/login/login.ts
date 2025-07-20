@@ -1,4 +1,3 @@
-// login.component.ts - VERSÃO COM REMEMBER ME
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -23,15 +22,12 @@ export class Login implements OnInit {
     private formBuilder: FormBuilder,
     private router: Router,
     private authService: AuthService 
-  ) {
-    console.log('AuthService injected:', this.authService);
-  }
+  ) {}
 
   ngOnInit(): void {
     this.initializeForm();
     this.loadRememberedCredentials();
     
-    // Se já estiver logado, redirecionar
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
     }
@@ -46,7 +42,6 @@ export class Login implements OnInit {
   }
 
   private loadRememberedCredentials(): void {
-    // Carregar email salvo se existir
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     const rememberMe = localStorage.getItem('rememberMe') === 'true';
     
@@ -63,57 +58,40 @@ export class Login implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
-    console.log('Login attempt started');
-    
     if (this.loginForm.valid) {
       this.isLoading = true;
       this.errorMessage = '';
 
       const { email, password, rememberMe } = this.loginForm.value;
-      
-      console.log('Attempting login for:', email, 'Remember me:', rememberMe);
 
       try {
-        // Definir persistência antes do login
         await this.authService.setPersistence(rememberMe);
         
-        console.log('Calling authService.login...');
         const result = await this.authService.login(email, password);
-        console.log('Login result:', result);
         
         if (result.success) {
-          // Salvar ou remover credenciais baseado na opção "lembrar-me"
           this.handleRememberMe(email, rememberMe);
-          
-          console.log('Login successful, redirecting...');
           this.router.navigate(['/dashboard']);
         } else {
-          console.log('Login failed:', result.message);
           this.errorMessage = result.message;
         }
       } catch (error) {
-        console.error('Login error:', error);
         this.errorMessage = 'Erro inesperado. Tente novamente.';
       } finally {
         this.isLoading = false;
       }
     } else {
-      console.log('Form is invalid');
       this.markFormGroupTouched(this.loginForm);
     }
   }
 
   private handleRememberMe(email: string, rememberMe: boolean): void {
     if (rememberMe) {
-      // Salvar email e preferência
       localStorage.setItem('rememberedEmail', email);
       localStorage.setItem('rememberMe', 'true');
-      console.log('Credentials saved for remember me');
     } else {
-      // Remover credenciais salvas
       localStorage.removeItem('rememberedEmail');
       localStorage.removeItem('rememberMe');
-      console.log('Credentials removed from remember me');
     }
   }
 
@@ -122,7 +100,6 @@ export class Login implements OnInit {
     this.errorMessage = '';
 
     try {
-      // Para Google login, sempre usar persistência local (mais conveniente)
       await this.authService.setPersistence(true);
       
       const result = await this.authService.loginWithGoogle();
