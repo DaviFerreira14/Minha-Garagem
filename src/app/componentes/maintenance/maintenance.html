@@ -1,4 +1,3 @@
-<!-- maintenance.component.html - Versão simplificada -->
 <div class="maintenance-container">
   <app-navbar></app-navbar>
   
@@ -70,7 +69,7 @@
           </p>
           <button class="btn" [class.btn-primary]="vehicles.length > 0" [class.btn-outline-primary]="vehicles.length === 0"
             (click)="vehicles.length > 0 ? goToAddMaintenance() : goToDashboard()">
-            <i class="fas" [class.fa-plus]="vehicles.length > 0" [class.fa-car]="vehicles.length === 0" class="me-2"></i>
+            <i class="fas fa-plus me-2" [class.fa-plus]="vehicles.length > 0" [class.fa-car]="vehicles.length === 0" class="fas fa-plus me-2"></i>
             {{ vehicles.length > 0 ? 'Adicionar Primeira Manutenção' : 'Adicionar Veículo' }}
           </button>
         </div>
