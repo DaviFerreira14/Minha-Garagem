@@ -113,7 +113,7 @@ export class ForgotPassword implements OnInit, OnDestroy {
   }
 
   private startResendCooldown(): void {
-    this.resendCooldown = 60; // 60 segundos
+    this.resendCooldown = 60;
     
     this.cooldownInterval = setInterval(() => {
       this.resendCooldown--;

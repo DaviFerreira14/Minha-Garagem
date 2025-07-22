@@ -225,7 +225,7 @@ export class Dashboard implements OnInit, OnDestroy {
     try {
       await this.vehicleService.migrateFromLocalStorage();
     } catch (error) {
-      // Error handling silent
+
     }
   }
 

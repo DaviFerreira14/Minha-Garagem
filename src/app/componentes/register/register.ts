@@ -1,4 +1,3 @@
-// register.component.ts - FIXED
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -134,12 +133,10 @@ export class Register implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  // CORRIGIDO: Método para navegar para termos
   goToTerms(): void {
     this.router.navigate(['/terms']);
   }
 
-  // CORRIGIDO: Método para navegar para política de privacidade
   goToPrivacyPolicy(): void {
     this.router.navigate(['/privacy-policy']);
   }

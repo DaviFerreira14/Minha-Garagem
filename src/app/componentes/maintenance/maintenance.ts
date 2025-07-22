@@ -1,4 +1,3 @@
-// maintenance.component.ts - Versão simplificada
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -23,21 +22,17 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   filteredMaintenances: MaintenanceModel[] = [];
   vehicles: Vehicle[] = [];
 
-  // Estados da UI
   showDeleteConfirm = false;
   
-  // Estados de loading
   isLoadingMaintenances = true;
   isUpdating = false;
   isDeleting = false;
 
-  // Mensagens e filtros
   successMessage = '';
   errorMessage = '';
   selectedVehicleFilter = '';
   selectedTypeFilter = '';
 
-  // Objetos temporários
   maintenanceToDelete: MaintenanceModel | null = null;
 
   constructor(
@@ -64,7 +59,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Carregamento de dados
   private async loadVehicles(): Promise<void> {
     try {
       this.vehicles = await firstValueFrom(this.vehicleService.getVehicles());
@@ -99,7 +93,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.filteredMaintenances = filtered;
   }
 
-  // Navegação
   goToAddMaintenance(): void {
     this.router.navigate(['/add-maintenance']);
   }
@@ -114,7 +107,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard']);
   }
 
-  // Marcar como realizada
   async markAsCompleted(maintenance: MaintenanceModel): Promise<void> {
     if (maintenance.type !== 'agendada') return;
 
@@ -138,7 +130,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Operações de modal de exclusão
   showDeleteModal(maintenance: MaintenanceModel): void {
     this.maintenanceToDelete = maintenance;
     this.showDeleteConfirm = true;
@@ -170,7 +161,6 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     this.isDeleting = false;
   }
 
-  // Limpar mensagens
   clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';

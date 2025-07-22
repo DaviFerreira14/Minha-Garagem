@@ -1,4 +1,3 @@
-// edit-maintenance.component.ts - OTIMIZADO
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -22,8 +21,7 @@ export class EditMaintenance implements OnInit {
   editForm!: FormGroup;
   vehicles: Vehicle[] = [];
   maintenance: MaintenanceModel | null = null;
-  
-  // Estados consolidados
+
   isLoading = false;
   isUpdating = false;
   showDeleteConfirm = false;
@@ -46,7 +44,6 @@ export class EditMaintenance implements OnInit {
     this.loadData();
   }
 
-  // Inicialização consolidada
   private createForm(): void {
     this.editForm = this.fb.group({
       vehicleId: ['', Validators.required],
@@ -111,7 +108,6 @@ export class EditMaintenance implements OnInit {
     });
   }
 
-  // Validações otimizadas
   private dateValidator = (control: any) => {
     const form = control.parent;
     if (!form) return null;
@@ -135,7 +131,6 @@ export class EditMaintenance implements OnInit {
     dateControl?.updateValueAndValidity();
   }
 
-  // Métodos de validação públicos
   getMinDate(): string {
     const type = this.editForm?.get('type')?.value;
     return type === 'agendada' && this.maintenance?.type === 'agendada' ? this.minDate : '';
@@ -176,7 +171,6 @@ export class EditMaintenance implements OnInit {
     return '';
   }
 
-  // Gerenciamento de itens
   private createItem(item?: MaintenanceItem): FormGroup {
     return this.fb.group({
       description: [item?.description || '', Validators.required],
@@ -198,7 +192,6 @@ export class EditMaintenance implements OnInit {
     return items.reduce((total: number, item: any) => total + (Number(item.cost) || 0), 0);
   }
 
-  // Operações principais
   async markAsCompleted(): Promise<void> {
     if (!this.maintenance || this.maintenance.type !== 'agendada') return;
 
@@ -286,7 +279,6 @@ export class EditMaintenance implements OnInit {
     };
   }
 
-  // Exclusão
   showDeleteModal(): void { this.showDeleteConfirm = true; }
 
   async confirmDelete(): Promise<void> {
@@ -315,7 +307,6 @@ export class EditMaintenance implements OnInit {
 
   goBack(): void { this.router.navigate(['/maintenance']); }
 
-  // Utilitários otimizados
   private isValidDate(): boolean {
     const type = this.editForm.get('type')?.value;
     const date = this.editForm.get('date')?.value;

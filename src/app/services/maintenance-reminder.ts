@@ -1,4 +1,3 @@
-//maintenance-reminder.ts 
 import { Injectable } from '@angular/core';
 import { MaintenanceService, Maintenance } from './maintenance';
 import { EmailService } from './email';
@@ -50,7 +49,6 @@ export class MaintenanceReminderService {
         await this.processMaintenanceReminder(maintenance);
       }
     } catch (error) {
-      // Error handling
     }
   }
 

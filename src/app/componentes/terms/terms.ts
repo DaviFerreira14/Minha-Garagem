@@ -1,4 +1,3 @@
-// terms.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -44,13 +43,11 @@ export class TermsComponent implements OnInit {
       localStorage.setItem('termsAcceptedDate', new Date().toISOString());
       this.termsAccepted = true;
       
-      // Mostrar feedback visual
       this.showAcceptanceMessage();
     }
   }
 
   private showAcceptanceMessage(): void {
-    // Criar elemento de notificação
     const notification = document.createElement('div');
     notification.className = 'acceptance-notification';
     notification.innerHTML = `
@@ -60,7 +57,6 @@ export class TermsComponent implements OnInit {
       </div>
     `;
     
-    // Adicionar estilos
     notification.style.cssText = `
       position: fixed;
       top: 20px;
@@ -75,10 +71,8 @@ export class TermsComponent implements OnInit {
       animation: slideInRight 0.3s ease-out;
     `;
     
-    // Adicionar ao DOM
     document.body.appendChild(notification);
     
-    // Remover após 3 segundos
     setTimeout(() => {
       notification.style.animation = 'slideOutRight 0.3s ease-out';
       setTimeout(() => {
@@ -89,7 +83,6 @@ export class TermsComponent implements OnInit {
     }, 3000);
   }
 
-  // Método para rolar para uma seção específica
   scrollToSection(sectionId: string): void {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -100,12 +93,10 @@ export class TermsComponent implements OnInit {
     }
   }
 
-  // Método para imprimir os termos
   printTerms(): void {
     window.print();
   }
 
-  // Método para copiar link dos termos
   copyTermsLink(): void {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {

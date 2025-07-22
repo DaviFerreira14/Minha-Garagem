@@ -1,10 +1,7 @@
-<!-- add-vehicle.component.html -->
 <div class="add-vehicle-container">
 
-  <!-- Main Content -->
   <div class="container">
-    
-    <!-- Notificação -->
+
     <div *ngIf="showNotification" 
          class="notification" 
          [class.notification-success]="notificationType === 'success'"
@@ -20,8 +17,7 @@
         </button>
       </div>
     </div>
-    
-    <!-- Header -->
+
     <div class="header">
       <button type="button" class="btn btn-outline-secondary back-btn" (click)="goToDashboard()">
         <i class="fas fa-arrow-left me-2"></i>Voltar
@@ -41,8 +37,7 @@
     </div>
 
     <form [formGroup]="vehicleForm" (ngSubmit)="onSubmit()" class="vehicle-form">
-      
-      <!-- Seção de Foto -->
+
       <div class="form-section photo-section">
         <h2>
           <i class="fas fa-camera me-2"></i>
@@ -85,7 +80,6 @@
                (change)="onFileSelected($event)">
       </div>
 
-      <!-- Informações Básicas -->
       <div class="form-section">
         <h2>
           <i class="fas fa-info-circle me-2"></i>
@@ -182,7 +176,6 @@
         </div>
       </div>
 
-      <!-- Especificações Técnicas -->
       <div class="form-section">
         <h2>
           <i class="fas fa-cogs me-2"></i>
@@ -248,7 +241,6 @@
         </div>
       </div>
 
-      <!-- Observações -->
       <div class="form-section">
         <h2>
           <i class="fas fa-sticky-note me-2"></i>
@@ -264,7 +256,6 @@
         </div>
       </div>
 
-      <!-- Botões de Ação -->
       <div class="form-actions">
         <button type="button" 
                 class="btn btn-secondary" 

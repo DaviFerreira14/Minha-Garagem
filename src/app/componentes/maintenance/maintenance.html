@@ -3,7 +3,6 @@
   
   <div class="container mt-4">
     
-    <!-- Header -->
     <div class="row mb-4">
       <div class="col-12 col-md-8 mb-3 mb-md-0">
         <h2 class="mb-0"><i class="fas fa-tools me-2 text-primary"></i>Manutenções</h2>
@@ -16,7 +15,6 @@
       </div>
     </div>
 
-    <!-- Filtros -->
     <div class="row mb-4" *ngIf="vehicles.length > 0">
       <div class="col-12 col-md-6 mb-3 mb-md-0">
         <label class="form-label d-block d-md-none">Filtrar por veículo:</label>
@@ -37,7 +35,6 @@
       </div>
     </div>
 
-    <!-- Mensagens -->
     <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
       <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
       <button type="button" class="btn-close" (click)="clearMessages()"></button>
@@ -48,11 +45,9 @@
       <button type="button" class="btn-close" (click)="clearMessages()"></button>
     </div>
 
-    <!-- Lista de Manutenções -->
     <div class="row">
       <div class="col-12">
-        
-        <!-- Loading -->
+  
         <div class="text-center py-5" *ngIf="isLoadingMaintenances">
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Carregando...</span>
@@ -60,7 +55,6 @@
           <p class="mt-2 text-muted">Carregando manutenções...</p>
         </div>
 
-        <!-- Estado Vazio -->
         <div class="text-center py-5" *ngIf="!isLoadingMaintenances && filteredMaintenances.length === 0">
           <i class="fas fa-tools fa-4x text-muted mb-3"></i>
           <h4 class="text-muted">Nenhuma manutenção encontrada</h4>
@@ -74,7 +68,6 @@
           </button>
         </div>
 
-        <!-- Lista de Manutenções -->
         <div class="row" *ngIf="!isLoadingMaintenances && filteredMaintenances.length > 0">
           <div class="col-12 col-md-6 col-lg-4 mb-4" *ngFor="let maintenance of filteredMaintenances">
             <div class="card h-100 maintenance-card" 
@@ -101,7 +94,6 @@
                   <i class="fas fa-calendar me-2 text-muted"></i>{{ maintenance.date | date:'dd/MM/yyyy' }}
                 </p>
                 
-                <!-- Itens -->
                 <div class="mb-3" *ngIf="maintenance.items.length > 0">
                   <h6 class="mb-2">Itens:</h6>
                   <ul class="list-unstyled mb-0">
@@ -112,7 +104,6 @@
                   </ul>
                 </div>
 
-                <!-- Observações -->
                 <div class="mb-3" *ngIf="maintenance.notes">
                   <h6 class="mb-2">Observações:</h6>
                   <p class="small text-muted mb-0">{{ maintenance.notes }}</p>
@@ -124,9 +115,7 @@
                   <strong class="text-primary">Total: R$ {{ maintenance.totalCost | number:'1.2-2' }}</strong>
                 </div>
                 
-                <!-- Botões de Ação -->
                 <div class="d-flex flex-column gap-2">
-                  <!-- Botões para manutenções agendadas -->
                   <div class="d-flex gap-2" *ngIf="maintenance.type === 'agendada'">
                     <button class="btn btn-outline-success btn-sm flex-fill" 
                       (click)="markAsCompleted(maintenance)" [disabled]="isUpdating">
@@ -141,7 +130,6 @@
                     </button>
                   </div>
                   
-                  <!-- Botão de edição para manutenções realizadas -->
                   <div *ngIf="maintenance.type === 'realizada'">
                     <button class="btn btn-outline-warning btn-sm w-100" (click)="goToEditMaintenance(maintenance)">
                       <i class="fas fa-edit me-1"></i>
@@ -149,7 +137,6 @@
                     </button>
                   </div>
                   
-                  <!-- Botão de exclusão -->
                   <button class="btn btn-outline-danger btn-sm w-100" (click)="showDeleteModal(maintenance)">
                     <i class="fas fa-trash me-1"></i>
                     <span class="d-none d-md-inline">Excluir</span>
@@ -165,7 +152,6 @@
 
   <app-footer></app-footer>
 
-  <!-- Modal de Confirmação de Exclusão -->
   <div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">

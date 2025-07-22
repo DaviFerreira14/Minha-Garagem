@@ -1,4 +1,3 @@
-// add-maintenance.component.ts - OTIMIZADO
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -41,7 +40,6 @@ export class AddMaintenance implements OnInit {
     this.loadVehicles();
   }
 
-  // Inicialização consolidada
   private createForm(): void {
     this.maintenanceForm = this.fb.group({
       vehicleId: ['', Validators.required],
@@ -63,7 +61,6 @@ export class AddMaintenance implements OnInit {
     }
   }
 
-  // Validação otimizada
   private dateValidator = (control: any) => {
     const form = control.parent;
     if (!form) return null;
@@ -86,7 +83,6 @@ export class AddMaintenance implements OnInit {
     dateControl?.updateValueAndValidity();
   }
 
-  // Métodos de validação públicos
   getMinDate(): string {
     return this.maintenanceForm?.get('type')?.value === 'agendada' ? this.minDate : '';
   }
@@ -126,7 +122,6 @@ export class AddMaintenance implements OnInit {
     return '';
   }
 
-  // Gerenciamento de itens
   private createItem(): FormGroup {
     return this.fb.group({
       description: ['', Validators.required],
@@ -148,7 +143,6 @@ export class AddMaintenance implements OnInit {
     return items.reduce((total: number, item: any) => total + (Number(item.cost) || 0), 0);
   }
 
-  // Submit principal
   async onSubmit(): Promise<void> {
     if (!this.maintenanceForm.valid || !this.isValidDate()) {
       this.markAllTouched();
@@ -222,7 +216,6 @@ export class AddMaintenance implements OnInit {
     };
   }
 
-  // Utilitários otimizados
   private isValidDate(): boolean {
     const type = this.maintenanceForm.get('type')?.value;
     const date = this.maintenanceForm.get('date')?.value;

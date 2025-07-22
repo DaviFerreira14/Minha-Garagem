@@ -1,11 +1,9 @@
-// add-vehicle.component.ts
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
-// Serviços
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { AuthService } from '../../services/auth';
 
@@ -26,7 +24,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
   isSubmitting = false;
   isDragOver = false;
 
-  // Notificações
   showNotification = false;
   notificationMessage = '';
   notificationType: 'success' | 'error' | 'info' = 'info';
@@ -129,7 +126,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     }
   }
 
-  // Eventos de drag and drop
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -246,8 +242,7 @@ export class AddVehicle implements OnInit, AfterViewInit {
         console.log('Veículo salvo com sucesso:', savedVehicle);
 
         localStorage.removeItem('vehicleDraft');
-        
-        // Redirecionar diretamente sem alert
+
         this.router.navigate(['/dashboard']);
 
       } catch (error) {
