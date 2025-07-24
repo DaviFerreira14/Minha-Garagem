@@ -12,7 +12,7 @@ import { AuthService } from '../../services/auth';
 })
 export class NavbarComponent implements OnInit {
   isDarkTheme = true;
-
+  
   constructor(
     private router: Router,
     private authService: AuthService

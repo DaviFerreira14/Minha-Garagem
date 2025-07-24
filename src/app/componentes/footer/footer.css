@@ -1,7 +1,7 @@
 .footer {
-  background: #1a1a1a;
-  border-top: 1px solid #3b82f6;
-  color: #e5e7eb;
+  background: var(--color-bg-alt);
+  border-top: 1px solid var(--color-primary);
+  color: var(--color-text);
   padding: 30px 0;
   margin-top: auto;
 }
@@ -10,16 +10,16 @@
   display: flex;
   align-items: center;
   font-size: 1.25rem;
-  color: #ffffff;
+  color: var(--color-text);
   margin-bottom: 8px;
 }
 
 .footer-brand i {
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 .footer-text {
-  color: #888888;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
@@ -28,7 +28,7 @@
 }
 
 .footer-link {
-  color: #888888;
+  color: var(--color-text-muted);
   text-decoration: none;
   font-size: 0.9rem;
   transition: color 0.3s ease;
@@ -36,12 +36,12 @@
 }
 
 .footer-link:hover {
-  color: #3b82f6;
+  color: var(--color-primary);
   text-decoration: underline;
 }
 
 .footer-copyright {
-  color: #666666;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
 }
 
