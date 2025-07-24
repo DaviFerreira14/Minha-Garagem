@@ -35,9 +35,22 @@
   z-index: 1;
 }
 
-.login-left-panel .fa-car,
+.login-left-panel .fa-car {
+  color: var(--color-primary) !important;
+  text-shadow: 0 0 16px rgba(59,130,246,0.10);
+}
+
 .login-left-panel h1 {
-  color: var(--color-text) !important;
+  color: #222 !important;
+}
+
+body.dark-theme .login-left-panel h1 {
+  color: #e5e7eb !important;
+}
+
+body.dark-theme .login-left-panel .fa-car {
+  color: #fff !important;
+  text-shadow: 0 0 16px rgba(59,130,246,0.20);
 }
 
 .login-left-panel .lead {
