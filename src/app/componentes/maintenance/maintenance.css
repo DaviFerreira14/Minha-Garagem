@@ -463,4 +463,3 @@ small { color: var(--color-text-muted); }
   .modal-footer { flex-direction: column; }
   .modal-footer .btn { width: 100%; margin-bottom: 10px; }
 }
-}

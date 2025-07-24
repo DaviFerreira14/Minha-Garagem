@@ -27,6 +27,7 @@ export class Login implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.loadRememberedCredentials();
+    this.detectAndApplySystemTheme();
     
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
@@ -50,6 +51,29 @@ export class Login implements OnInit {
         email: rememberedEmail,
         rememberMe: true
       });
+    }
+  }
+
+  private detectAndApplySystemTheme(): void {
+    const savedTheme = localStorage.getItem('theme');
+    if (!savedTheme) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = prefersDark ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
+      this.applyTheme(theme);
+    } else {
+      this.applyTheme(savedTheme);
+    }
+  }
+
+  private applyTheme(theme: string): void {
+    const body = document.body;
+    if (theme === 'dark') {
+      body.classList.add('dark-theme');
+      body.classList.remove('light-theme');
+    } else {
+      body.classList.add('light-theme');
+      body.classList.remove('dark-theme');
     }
   }
 
