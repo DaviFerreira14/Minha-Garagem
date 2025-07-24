@@ -11,13 +11,39 @@ import { AuthService } from '../../services/auth';
   styleUrls: ['./navbar.css']
 })
 export class NavbarComponent implements OnInit {
-  
+  isDarkTheme = true;
+
   constructor(
     private router: Router,
     private authService: AuthService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadTheme();
+  }
+
+  toggleTheme(): void {
+    this.isDarkTheme = !this.isDarkTheme;
+    this.applyTheme();
+    localStorage.setItem('theme', this.isDarkTheme ? 'dark' : 'light');
+  }
+
+  loadTheme(): void {
+    const savedTheme = localStorage.getItem('theme');
+    this.isDarkTheme = savedTheme !== 'light';
+    this.applyTheme();
+  }
+
+  applyTheme(): void {
+    const body = document.body;
+    if (this.isDarkTheme) {
+      body.classList.add('dark-theme');
+      body.classList.remove('light-theme');
+    } else {
+      body.classList.add('light-theme');
+      body.classList.remove('dark-theme');
+    }
+  }
 
   getUserDisplayName(): string {
     return this.authService.getUserDisplayName();

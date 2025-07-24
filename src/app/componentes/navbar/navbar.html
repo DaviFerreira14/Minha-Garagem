@@ -49,6 +49,12 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
+              <button class="dropdown-item d-flex align-items-center" (click)="toggleTheme()" style="cursor: pointer;">
+                <i class="fas" [ngClass]="isDarkTheme ? 'fa-sun' : 'fa-moon'" style="margin-right: 8px;"></i>
+                {{ isDarkTheme ? 'Tema Claro' : 'Tema Escuro' }}
+              </button>
+            </li>
+            <li>
               <a class="dropdown-item" (click)="logout()" style="cursor: pointer;">
                 <i class="fas fa-sign-out-alt me-2"></i>Sair
               </a>

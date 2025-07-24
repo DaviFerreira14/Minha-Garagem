@@ -37,7 +37,11 @@
   },
   "devDependencies": {
     "@angular/build": "^20.0.5",
+<<<<<<< HEAD
     "@angular/cli": "^20.0.5",
+=======
+    "@angular/cli": "^20.1.2",
+>>>>>>> 64122e4 (navbar e dashboard tema claro)
     "@angular/compiler-cli": "^20.0.0",
     "@types/jasmine": "~5.1.0",
     "jasmine-core": "~5.7.0",

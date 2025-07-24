@@ -1,7 +1,7 @@
 .navbar {
-  background: #1a1a1a !important;
-  border-bottom: 1px solid #3b82f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: var(--color-bg-alt) !important;
+  border-bottom: 1px solid var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   z-index: 1000;
   padding: 12px 0;
 }
@@ -14,14 +14,14 @@
 
 .navbar-brand {
   font-size: 1.5rem;
-  color: #ffffff !important;
+  color: var(--color-text) !important;
   transition: color 0.3s ease;
   font-weight: 700;
   margin-right: 0;
 }
 
 .navbar-brand:hover {
-  color: #3b82f6 !important;
+  color: var(--color-primary) !important;
 }
 
 .navbar-nav.mx-auto {
@@ -33,7 +33,7 @@
 }
 
 .nav-link {
-  color: #e5e7eb !important;
+  color: var(--color-text) !important;
   transition: all 0.3s ease;
   border-radius: 8px;
   padding: 10px 20px !important;
@@ -42,14 +42,14 @@
 }
 
 .nav-link:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.08);
+  color: var(--color-primary) !important;
   transform: translateY(-1px);
 }
 
 .nav-link.active {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary) !important;
   font-weight: 600;
 }
 
@@ -72,14 +72,14 @@
 
 .navbar-nav.ms-auto .nav-link {
   padding: 8px 16px !important;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid var(--color-primary-light);
   border-radius: 20px;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.07);
 }
 
 .navbar-nav.ms-auto .nav-link:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.15);
+  border-color: var(--color-primary);
 }
 
 .navbar-toggler {
@@ -97,8 +97,8 @@
 }
 
 .dropdown-menu {
-  background-color: #2a2a2a;
-  border: 1px solid #404040;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   margin-top: 8px;
@@ -106,7 +106,7 @@
 }
 
 .dropdown-item {
-  color: #e5e7eb;
+  color: var(--color-text);
   border-radius: 6px;
   margin: 4px 8px;
   padding: 8px 12px;
@@ -114,13 +114,13 @@
 }
 
 .dropdown-item:hover {
-  background-color: #404040;
-  color: #3b82f6;
+  background-color: var(--color-border);
+  color: var(--color-primary);
   transform: translateX(3px);
 }
 
 .fa-car {
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 .fa-user-circle {
@@ -137,11 +137,11 @@
     transform: none;
     margin: 20px 0 !important;
     padding-top: 20px;
-    border-top: 1px solid #404040;
+    border-top: 1px solid var(--color-border);
   }
   
   .navbar-nav.ms-auto {
-    border-top: 1px solid #404040;
+    border-top: 1px solid var(--color-border);
     padding-top: 20px;
     margin-top: 10px !important;
   }
