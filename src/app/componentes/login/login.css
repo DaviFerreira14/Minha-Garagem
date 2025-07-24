@@ -44,8 +44,15 @@
   color: #222 !important;
 }
 
-body.dark-theme .login-left-panel h1 {
-  color: #e5e7eb !important;
+/* CORREÇÃO PRINCIPAL - Regras mais específicas para tema escuro */
+body.dark-theme .login-left-panel h1,
+body.dark-theme .login-left-panel h1.titulo-garagem,
+body.dark-theme .login-left-panel .titulo-garagem,
+body.dark-theme .titulo-garagem {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
+  background: none !important;
+  filter: none !important;
 }
 
 body.dark-theme .login-left-panel .fa-car {
@@ -429,4 +436,45 @@ a:hover {
     width: 100%;
     overflow-x: hidden;
   }
+}
+
+/* CORREÇÕES ADICIONAIS PARA GARANTIR QUE O TÍTULO FIQUE BRANCO NO TEMA ESCURO */
+/* Regras com alta especificidade para sobrescrever qualquer outra regra */
+body.dark-theme .login-left-panel div h1.fw-bold.titulo-garagem,
+body.dark-theme .login-left-panel div .titulo-garagem,
+body.dark-theme .login-left-panel > div > div > h1.titulo-garagem,
+.dark-theme .titulo-garagem,
+.dark-theme h1.titulo-garagem {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  filter: none !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Garantir que elementos filhos também herdem a cor correta */
+body.dark-theme .login-left-panel * {
+  color: inherit;
+}
+
+/* Regra para Bootstrap ou outras classes que possam interferir */
+body.dark-theme .login-left-panel .fw-bold {
+  color: #ffffff !important;
+}
+
+body.dark-theme .login-left-panel .text-white {
+  color: #ffffff !important;
+}
+
+/* Garante que só o texto 'Minha Garagem' fique branco no tema escuro */
+body.dark-theme .login-left-panel h1.titulo-garagem {
+  color: #fff !important;
+  text-shadow: 0 0 8px #0008 !important;
+}
+
+/* Força o texto 'Minha Garagem' a ficar branco no tema escuro mesmo com ViewEncapsulation */
+body.dark-theme ::ng-deep .login-left-panel h1.titulo-garagem {
+  color: #fff !important;
+  text-shadow: 0 0 8px #0008 !important;
 }
