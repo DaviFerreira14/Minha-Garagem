@@ -71,10 +71,24 @@ export class Login implements OnInit {
     if (theme === 'dark') {
       body.classList.add('dark-theme');
       body.classList.remove('light-theme');
+      this.fixTitleColor();
     } else {
       body.classList.add('light-theme');
       body.classList.remove('dark-theme');
     }
+  }
+
+  private fixTitleColor(): void {
+    setTimeout(() => {
+      const body = document.body;
+      const titulo = document.querySelector('h1.fw-bold.titulo-garagem') as HTMLElement;
+      
+      if (titulo && body.classList.contains('dark-theme')) {
+        titulo.style.setProperty('color', '#ffffff', 'important');
+        titulo.style.setProperty('text-shadow', '0 0 8px rgba(0,0,0,0.5)', 'important');
+        titulo.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+      }
+    }, 100);
   }
 
   togglePasswordVisibility(): void {
