@@ -73,7 +73,7 @@ export class EditMaintenance implements OnInit {
   }
 
   private async loadMaintenance(): Promise<void> {
-    const id = this.route.snapshot.queryParams['id'];
+    const id = this.route.snapshot.paramMap.get('id');
     if (!id) return this.navigateToList('ID da manutenção não encontrado');
 
     try {

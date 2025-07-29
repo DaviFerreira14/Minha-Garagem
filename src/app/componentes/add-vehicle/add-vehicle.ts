@@ -73,10 +73,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     return this.vehicleForm.controls;
   }
 
-  getCurrentUser(): any {
-    return this.authService.getCurrentUser();
-  }
-
   hasError(fieldName: string, errorType: string): boolean {
     const field = this.vehicleForm.get(fieldName);
     return field ? field.hasError(errorType) && (field.dirty || field.touched) : false;
@@ -209,7 +205,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
       try {
         await this.authService.waitForAuthStateInitialized();
         const currentUser = this.authService.getCurrentUser();
-        console.log('Usuário atual:', currentUser);
 
         if (!currentUser || !currentUser.uid) {
           throw new Error('Usuário não está logado');
@@ -238,11 +233,8 @@ export class AddVehicle implements OnInit, AfterViewInit {
           userId: currentUser.uid
         };
 
-        const savedVehicle = await this.vehicleService.addVehicle(vehicleData);
-        console.log('Veículo salvo com sucesso:', savedVehicle);
-
+        await this.vehicleService.addVehicle(vehicleData);
         localStorage.removeItem('vehicleDraft');
-
         this.router.navigate(['/dashboard']);
 
       } catch (error) {
@@ -273,14 +265,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     }, 300);
   }
 
-  private showSuccessMessage(): void {
-    alert('Veículo salvo com sucesso! Redirecionando para o dashboard...');
-  }
-
-  private showErrorMessage(message: string): void {
-    alert(message);
-  }
-
   saveAsDraft(): void {
     const draftData = {
       form: this.vehicleForm.value,
@@ -289,7 +273,6 @@ export class AddVehicle implements OnInit, AfterViewInit {
     };
     
     localStorage.setItem('vehicleDraft', JSON.stringify(draftData));
-    console.log('Rascunho salvo');
     this.showNotificationMessage('Rascunho salvo com sucesso!', 'success');
   }
 
@@ -310,12 +293,5 @@ export class AddVehicle implements OnInit, AfterViewInit {
       }
     }
     this.router.navigate(['/dashboard']);
-  }
-
-  clearAllVehicles(): void {
-    if (confirm('Tem certeza que deseja limpar todos os veículos? Esta ação não pode ser desfeita.')) {
-      this.vehicleService.clearAllVehicles();
-      console.log('Todos os veículos foram removidos');
-    }
   }
 }

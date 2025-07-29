@@ -5,7 +5,6 @@ import {
   addDoc, 
   query, 
   where, 
-  getDocs, 
   updateDoc, 
   deleteDoc, 
   doc, 
@@ -83,10 +82,6 @@ export class VehicleService {
     return this.vehicles$;
   }
 
-  getVehiclesByUser(userId: string): Observable<Vehicle[]> {
-    return this.vehicles$;
-  }
-
   getVehicleById(id: string): Vehicle | null {
     return this.vehiclesSubject.value.find(v => v.id === id) || null;
   }
@@ -120,17 +115,9 @@ export class VehicleService {
     await deleteDoc(doc(db, 'vehicles', id));
   }
 
-  async deleteVehicle(id: string): Promise<void> {
-    return this.removeVehicle(id);
-  }
-
   async clearAllVehicles(): Promise<void> {
     const vehicles = this.vehiclesSubject.value;
     await Promise.all(vehicles.map(vehicle => this.removeVehicle(vehicle.id)));
-  }
-
-  async clearUserVehicles(): Promise<void> {
-    return this.clearAllVehicles();
   }
 
   processImageFile(file: File): Promise<string> {

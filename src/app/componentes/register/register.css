@@ -7,6 +7,7 @@
   background: transparent;
   position: relative;
   overflow: hidden;
+  padding: 0;
 }
 
 .register-left-panel::before {
@@ -267,29 +268,41 @@ a:hover {
 }
 
 .register-left-panel .fa-car {
-  color: var(--color-primary) !important;
+  color: var(--color-primary);
   text-shadow: 0 0 16px rgba(59,130,246,0.10);
 }
 
-.register-left-panel h1,
-.register-left-panel .lead,
+.register-left-panel h1 {
+  color: #222;
+}
+
+.register-left-panel .lead {
+  color: var(--color-text-muted);
+}
+
 .register-left-panel .feature-item {
-  color: #222 !important;
+  color: var(--color-text);
 }
 
 .register-left-panel .feature-item i {
-  color: var(--color-primary) !important;
+  color: var(--color-primary);
 }
 
+/* Dark theme overrides */
 body.dark-theme .register-left-panel h1,
 body.dark-theme .register-left-panel .lead,
 body.dark-theme .register-left-panel .feature-item {
-  color: #e5e7eb !important;
+  color: #ffffff !important;
 }
 
 body.dark-theme .register-left-panel .fa-car {
   color: #fff !important;
   text-shadow: 0 0 16px rgba(59,130,246,0.20);
+}
+
+/* Dark theme - título "Criar Conta" */
+body.dark-theme .register-form-container h2.text-dark {
+  color: #ffffff !important;
 }
 
 body:not(.dark-theme) .register-form-container {

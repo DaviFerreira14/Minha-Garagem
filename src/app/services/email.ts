@@ -1,4 +1,3 @@
-// src/app/services/email.ts
 import { Injectable } from '@angular/core';
 import emailjs from '@emailjs/browser';
 import { Maintenance } from './maintenance';

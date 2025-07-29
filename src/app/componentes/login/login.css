@@ -36,46 +36,61 @@
 }
 
 .login-left-panel .fa-car {
-  color: var(--color-primary) !important;
+  color: var(--color-primary);
   text-shadow: 0 0 16px rgba(59,130,246,0.10);
 }
 
 .login-left-panel h1 {
+  color: #222;
+}
+
+.login-left-panel .lead {
+  color: var(--color-text-muted);
+}
+
+/* Light theme overrides - mais específicas */
+body.light-theme .login-left-panel .text-white,
+body.light-theme .login-left-panel h1,
+body.light-theme .login-left-panel .titulo-garagem {
+  color: #222 !important;
+  text-shadow: none !important;
+}
+
+body.light-theme .login-left-panel .lead,
+body.light-theme .login-left-panel p.lead {
+  color: #666 !important;
+}
+
+body.light-theme .login-left-panel .feature-item,
+body.light-theme .login-left-panel .feature-item span {
   color: #222 !important;
 }
 
+body.light-theme .login-left-panel .fa-car {
+  color: var(--color-primary) !important;
+  text-shadow: 0 0 16px rgba(59,130,246,0.10);
+}
+
+/* Dark theme overrides - mais específicas */
 body.dark-theme .login-left-panel h1,
-body.dark-theme .login-left-panel h1.titulo-garagem,
-body.dark-theme .login-left-panel .titulo-garagem,
-body.dark-theme .titulo-garagem {
+body.dark-theme .login-left-panel .titulo-garagem {
   color: #ffffff !important;
   text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
-  background: none !important;
-  filter: none !important;
+}
+
+body.dark-theme .login-left-panel .lead,
+body.dark-theme .login-left-panel p.lead {
+  color: #e5e7eb !important;
+}
+
+body.dark-theme .login-left-panel .feature-item,
+body.dark-theme .login-left-panel .feature-item span {
+  color: #ffffff !important;
 }
 
 body.dark-theme .login-left-panel .fa-car {
   color: #fff !important;
   text-shadow: 0 0 16px rgba(59,130,246,0.20);
-}
-
-body.dark-theme .login-left-panel h1.fw-bold.titulo-garagem {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
-}
-
-body.dark-theme .login-left-panel div.text-center h1.fw-bold.titulo-garagem {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
-}
-
-html body.dark-theme .login-left-panel .titulo-garagem {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
-}
-
-.login-left-panel .lead {
-  color: var(--color-text-muted);
 }
 
 .col-md-6:last-child {
@@ -434,33 +449,3 @@ a:hover {
   }
 }
 
-body.dark-theme .login-left-panel div h1.fw-bold.titulo-garagem,
-body.dark-theme .login-left-panel div .titulo-garagem,
-body.dark-theme .login-left-panel > div > div > h1.titulo-garagem,
-.dark-theme .titulo-garagem,
-.dark-theme h1.titulo-garagem {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5) !important;
-  background: transparent !important;
-  background-color: transparent !important;
-  filter: none !important;
-  -webkit-text-fill-color: #ffffff !important;
-}
-
-body.dark-theme .login-left-panel * {
-  color: inherit;
-}
-
-body.dark-theme .login-left-panel .fw-bold {
-  color: #ffffff !important;
-}
-
-body.dark-theme .login-left-panel .text-white {
-  color: #ffffff !important;
-}
-
-body.dark-theme .login-left-panel h1.titulo-garagem {
-  color: #fff !important;
-  text-shadow: 0 0 8px #0008 !important;
-  background: none !important;
-}

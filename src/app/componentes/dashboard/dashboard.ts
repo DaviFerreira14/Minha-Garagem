@@ -184,28 +184,18 @@ export class Dashboard implements OnInit, OnDestroy {
     }
   }
 
-  addFirstVehicle(): void { this.router.navigate(['/add-vehicle']); }
   addNewVehicle(): void { this.router.navigate(['/add-vehicle']); }
+  
   viewVehicleDetails(vehicleId: string): void { 
     if (vehicleId) this.router.navigate(['/vehicles', vehicleId]); 
   }
+  
   editVehicle(vehicleId: string): void { 
     if (vehicleId) this.router.navigate(['/vehicles', vehicleId, 'edit']); 
   }
   
-  navigateToDashboard(): void { this.router.navigate(['/dashboard']); }
   navigateToExpenses(): void { this.router.navigate(['/expenses']); }
   navigateToMaintenance(): void { this.router.navigate(['/maintenance']); }
-  goToMaintenance(): void { this.router.navigate(['/maintenance']); }
-  goToAddVehicle(): void { this.router.navigate(['/add-vehicle']); }
-  goToVehicleDetails(vehicle: Vehicle): void { 
-    if (vehicle.id) this.router.navigate(['/vehicles', vehicle.id]); 
-  }
-  goToEditVehicle(vehicle: Vehicle): void { 
-    if (vehicle.id) this.router.navigate(['/vehicles', vehicle.id, 'edit']); 
-  }
-  goToExpenses(): void { this.router.navigate(['/expenses']); }
-  goToReports(): void { this.router.navigate(['/reports']); }
 
   async clearAllVehicles(): Promise<void> {
     const confirmClear = confirm('Tem certeza que deseja limpar todos os veículos? Esta ação não pode ser desfeita.');
@@ -225,10 +215,8 @@ export class Dashboard implements OnInit, OnDestroy {
     try {
       await this.vehicleService.migrateFromLocalStorage();
     } catch (error) {
-
     }
   }
 
   async logout(): Promise<void> { await this.authService.logout(); }
-  async deleteVehicle(vehicle: Vehicle): Promise<void> { this.removeVehicle(vehicle); }
 }

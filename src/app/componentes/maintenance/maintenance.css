@@ -249,7 +249,6 @@ small { color: var(--color-text-muted); }
   border: 1px solid var(--color-primary);
 }
 
-/* Input Groups & Item Management */
 .border.rounded.p-3.mb-2.bg-light {
   border: 2px dashed var(--color-primary) !important;
   background: rgba(59, 130, 246, 0.05) !important;

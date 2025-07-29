@@ -28,6 +28,7 @@ export class Register implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.detectAndApplySystemTheme();
     
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
@@ -44,6 +45,45 @@ export class Register implements OnInit {
     }, {
       validators: this.passwordMatchValidator
     });
+  }
+
+  private detectAndApplySystemTheme(): void {
+    const savedTheme = localStorage.getItem('theme');
+    if (!savedTheme) {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = prefersDark ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
+      this.applyTheme(theme);
+    } else {
+      this.applyTheme(savedTheme);
+    }
+  }
+
+  private applyTheme(theme: string): void {
+    const body = document.body;
+    if (theme === 'dark') {
+      body.classList.add('dark-theme');
+      body.classList.remove('light-theme');
+      this.fixTitleColor();
+    } else {
+      body.classList.add('light-theme');
+      body.classList.remove('dark-theme');
+    }
+  }
+
+  private fixTitleColor(): void {
+    setTimeout(() => {
+      const body = document.body;
+      const titulo = document.querySelector('.register-left-panel h1.fw-bold') as HTMLElement;
+      
+      if (titulo && body.classList.contains('dark-theme')) {
+        titulo.style.setProperty('color', '#ffffff', 'important');
+        titulo.style.setProperty('text-shadow', '0 0 8px rgba(0,0,0,0.5)', 'important');
+        titulo.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+        
+        console.log('Título "Minha Garagem" corrigido para branco no register');
+      }
+    }, 100);
   }
 
   private passwordMatchValidator(control: AbstractControl): {[key: string]: any} | null {
