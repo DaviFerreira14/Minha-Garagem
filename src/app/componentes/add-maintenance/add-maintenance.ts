@@ -8,6 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { MaintenanceService, MaintenanceItem } from '../../services/maintenance';
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { MaintenanceReminderService } from '../../services/maintenance-reminder';
+import { ExpenseService } from '../../services/expense'; // Importar ExpenseService
 import { NavbarComponent } from '../navbar/navbar';
 import { FooterComponent } from '../footer/footer';
 
@@ -32,7 +33,8 @@ export class AddMaintenance implements OnInit {
     private router: Router,
     private maintenanceService: MaintenanceService,
     private vehicleService: VehicleService,
-    private reminderService: MaintenanceReminderService
+    private reminderService: MaintenanceReminderService,
+    private expenseService: ExpenseService // Injetar ExpenseService
   ) {}
 
   ngOnInit(): void {
@@ -116,7 +118,8 @@ export class AddMaintenance implements OnInit {
     if (type === 'realizada') {
       if (!date) return 'Selecione a data em que a manutenção foi realizada';
       return new Date(date).toDateString() === new Date().toDateString() 
-        ? '✅ Manutenção realizada hoje' : '📋 Manutenção registrada no histórico';
+        ? '✅ Manutenção realizada hoje - Será adicionada automaticamente aos gastos' 
+        : '📋 Manutenção registrada no histórico - Será adicionada automaticamente aos gastos';
     }
 
     return '';
@@ -157,12 +160,20 @@ export class AddMaintenance implements OnInit {
       const data = this.buildMaintenanceData();
       if (!data) return;
 
+      // Salvar a manutenção
       const result = await this.maintenanceService.addMaintenance(data);
 
       if (result.success) {
+        // Se for manutenção realizada e tem custo, adicionar aos gastos
+        if (data.type === 'realizada' && data.totalCost > 0) {
+          await this.addMaintenanceAsExpense(data);
+        }
+
         const message = data.type === 'agendada' 
           ? `${result.message} Você receberá lembretes por email 3 dias antes e no dia da manutenção.`
-          : result.message;
+          : data.totalCost > 0 
+            ? `${result.message} O gasto de R$ ${data.totalCost.toFixed(2)} foi automaticamente adicionado aos seus gastos.`
+            : result.message;
         
         this.showMessage(message, 'success');
         
@@ -170,7 +181,7 @@ export class AddMaintenance implements OnInit {
           setTimeout(() => this.reminderService.forceCheckReminders(), 2000);
         }
         
-        setTimeout(() => this.router.navigate(['/maintenance']), 2000);
+        setTimeout(() => this.router.navigate(['/maintenance']), 3000);
       } else {
         this.errorMessage = result.message;
       }
@@ -178,6 +189,35 @@ export class AddMaintenance implements OnInit {
       this.errorMessage = 'Erro inesperado ao salvar manutenção';
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  // Novo método para adicionar manutenção como gasto
+  private async addMaintenanceAsExpense(maintenanceData: any): Promise<void> {
+    try {
+      const vehicle = this.vehicles.find(v => v.id === maintenanceData.vehicleId);
+      if (!vehicle) return;
+
+      // Criar descrição detalhada baseada nos itens da manutenção
+      const itemsDescription = maintenanceData.items
+        .map((item: MaintenanceItem) => item.description)
+        .join(', ');
+
+      const expense = {
+        vehicleId: maintenanceData.vehicleId,
+        vehicleName: `${vehicle.brand} ${vehicle.model} (${vehicle.year})`,
+        category: "maintenance" as const, // Categoria específica para manutenções
+        subcategory: 'preventiva', // Subcategoria padrão
+        description: `${maintenanceData.title} - ${itemsDescription}`,
+        amount: maintenanceData.totalCost,
+        date: maintenanceData.date,
+        notes: `Manutenção realizada - ${maintenanceData.notes || 'Registro automático'}`
+      };
+
+      await this.expenseService.addExpense(expense);
+    } catch (error) {
+      console.warn('Erro ao adicionar manutenção aos gastos:', error);
+      // Não bloqueamos o fluxo principal se houver erro ao adicionar o gasto
     }
   }
 
