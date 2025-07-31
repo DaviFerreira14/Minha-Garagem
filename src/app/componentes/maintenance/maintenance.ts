@@ -98,9 +98,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
   }
 
   goToEditMaintenance(maintenance: MaintenanceModel): void {
-    this.router.navigate(['/edit-maintenance'], { 
-      queryParams: { id: maintenance.id } 
-    });
+    this.router.navigate(['/maintenance', maintenance.id, 'edit']);
   }
 
   goToDashboard(): void {

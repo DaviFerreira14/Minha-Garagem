@@ -1,4 +1,4 @@
-import { Injectable, OnInit } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
@@ -26,15 +26,13 @@ export interface AuthResult {
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService implements OnInit {
+export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
   private authStateInitializedSubject = new BehaviorSubject<boolean>(false);
   public authStateInitialized$ = this.authStateInitializedSubject.asObservable();
 
-  constructor(private auth: Auth, private firestore: Firestore, private router: Router) {}
-
-  ngOnInit(): void {
+  constructor(private auth: Auth, private firestore: Firestore, private router: Router) {
     this.initAuthStateListener();
   }
 
@@ -207,11 +205,6 @@ export class AuthService implements OnInit {
     } catch (error: any) {
       return { success: false, message: this.getFirebaseErrorMessage(error) };
     }
-  }
-
-  async forgotPassword(email: string): Promise<void> {
-    const result = await this.resetPassword(email);
-    if (!result.success) throw new Error(result.message);
   }
 
   async updateProfile(updates: Partial<User>): Promise<User> {

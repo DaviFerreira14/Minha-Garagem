@@ -13,8 +13,6 @@ import { EmailService } from './services/email';
   styleUrls: ['./app.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'minha-garagem';
-
   constructor(
     private authService: AuthService,
     private reminderService: MaintenanceReminderService,
@@ -47,7 +45,6 @@ export class AppComponent implements OnInit, OnDestroy {
           }, 5000);
         }
       }
-      
     } catch (error) {
       console.error('Erro ao inicializar serviços:', error);
     }
