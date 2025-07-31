@@ -11,7 +11,7 @@ import { AuthService } from '../../services/auth';
   styleUrls: ['./navbar.css']
 })
 export class NavbarComponent implements OnInit {
-  isDarkTheme = true;
+  isDarkTheme = false;
   
   constructor(
     private router: Router,
@@ -30,7 +30,12 @@ export class NavbarComponent implements OnInit {
 
   loadTheme(): void {
     const savedTheme = localStorage.getItem('theme');
-    this.isDarkTheme = savedTheme !== 'light';
+    if (!savedTheme) {
+      this.isDarkTheme = false;
+      localStorage.setItem('theme', 'light');
+    } else {
+      this.isDarkTheme = savedTheme === 'dark';
+    }
     this.applyTheme();
   }
 

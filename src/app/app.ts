@@ -22,6 +22,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.initializeTheme();
     this.authService.waitForAuthStateInitialized().then(() => {
       this.initializeServices();
     });
@@ -60,5 +61,26 @@ export class AppComponent implements OnInit, OnDestroy {
         this.reminderService.startReminderSystem();
       }
     }, 1000);
+  }
+
+  private initializeTheme(): void {
+    const savedTheme = localStorage.getItem('theme');
+    if (!savedTheme) {
+      localStorage.setItem('theme', 'light');
+      this.applyTheme('light');
+    } else {
+      this.applyTheme(savedTheme);
+    }
+  }
+
+  private applyTheme(theme: string): void {
+    const body = document.body;
+    if (theme === 'dark') {
+      body.classList.add('dark-theme');
+      body.classList.remove('light-theme');
+    } else {
+      body.classList.add('light-theme');
+      body.classList.remove('dark-theme');
+    }
   }
 }

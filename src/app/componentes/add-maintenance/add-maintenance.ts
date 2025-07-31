@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { MaintenanceService, MaintenanceItem } from '../../services/maintenance';
 import { VehicleService, Vehicle } from '../../services/vehicle';
 import { MaintenanceReminderService } from '../../services/maintenance-reminder';
-import { ExpenseService } from '../../services/expense'; // Importar ExpenseService
+import { ExpenseService } from '../../services/expense'; 
 import { NavbarComponent } from '../navbar/navbar';
 import { FooterComponent } from '../footer/footer';
 
@@ -34,7 +34,7 @@ export class AddMaintenance implements OnInit {
     private maintenanceService: MaintenanceService,
     private vehicleService: VehicleService,
     private reminderService: MaintenanceReminderService,
-    private expenseService: ExpenseService // Injetar ExpenseService
+    private expenseService: ExpenseService 
   ) {}
 
   ngOnInit(): void {
@@ -160,11 +160,9 @@ export class AddMaintenance implements OnInit {
       const data = this.buildMaintenanceData();
       if (!data) return;
 
-      // Salvar a manutenção
       const result = await this.maintenanceService.addMaintenance(data);
 
       if (result.success) {
-        // Se for manutenção realizada e tem custo, adicionar aos gastos
         if (data.type === 'realizada' && data.totalCost > 0) {
           await this.addMaintenanceAsExpense(data);
         }
@@ -192,13 +190,11 @@ export class AddMaintenance implements OnInit {
     }
   }
 
-  // Novo método para adicionar manutenção como gasto
   private async addMaintenanceAsExpense(maintenanceData: any): Promise<void> {
     try {
       const vehicle = this.vehicles.find(v => v.id === maintenanceData.vehicleId);
       if (!vehicle) return;
 
-      // Criar descrição detalhada baseada nos itens da manutenção
       const itemsDescription = maintenanceData.items
         .map((item: MaintenanceItem) => item.description)
         .join(', ');
@@ -206,8 +202,8 @@ export class AddMaintenance implements OnInit {
       const expense = {
         vehicleId: maintenanceData.vehicleId,
         vehicleName: `${vehicle.brand} ${vehicle.model} (${vehicle.year})`,
-        category: "maintenance" as const, // Categoria específica para manutenções
-        subcategory: 'preventiva', // Subcategoria padrão
+        category: "maintenance" as const, 
+        subcategory: 'preventiva', 
         description: `${maintenanceData.title} - ${itemsDescription}`,
         amount: maintenanceData.totalCost,
         date: maintenanceData.date,
@@ -217,7 +213,6 @@ export class AddMaintenance implements OnInit {
       await this.expenseService.addExpense(expense);
     } catch (error) {
       console.warn('Erro ao adicionar manutenção aos gastos:', error);
-      // Não bloqueamos o fluxo principal se houver erro ao adicionar o gasto
     }
   }
 

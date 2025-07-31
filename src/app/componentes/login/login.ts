@@ -57,8 +57,7 @@ export class Login implements OnInit {
   private detectAndApplySystemTheme(): void {
     const savedTheme = localStorage.getItem('theme');
     if (!savedTheme) {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = prefersDark ? 'dark' : 'light';
+      const theme = 'light';
       localStorage.setItem('theme', theme);
       this.applyTheme(theme);
     } else {
